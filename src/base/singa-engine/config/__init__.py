@@ -19,11 +19,15 @@
 
 from .dataset_config import DataSetConfig
 from .dataset_config import get_dataset_config_from_dict
-from .dataset_config import get_dateset_config_from_json
+from .model_config import MLPConfig
+from .model_config import CNNConfig
+from .model_config import get_model_config_from_dict
 
 
 __all__ = [
     "DataSetConfig",
-    "get_dateset_config_from_json",
     "get_dataset_config_from_dict",
+    "MLPConfig",
+    "CNNConfig",
+    "get_model_config_from_dict",
 ]

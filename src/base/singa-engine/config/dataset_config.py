@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-import json
+
 from typing import Dict, Any
 
 
@@ -27,16 +27,7 @@ class DataSetConfig:
         self.train_size = train_size
         self.val_size = val_size
 
-def get_dateset_config_from_json(config: str):
-    def object_hook(cfg_dict):
-        name = cfg_dict.get("name")
-        total_size = cfg_dict.get("total_size")
-        train_size = cfg_dict.get("train_size")
-        val_size = cfg_dict.get("val_size")
-        return DataSetConfig(name, total_size, train_size, val_size)
-    return json.loads(config, object_hook=object_hook)
-
-def get_dataset_config_from_dict(config: Dict[str, Any]) -> DataSetConfig:
+def get_dataset_config_from_dict(config: Dict[str, Any]):
     name = config.get("name")
     total_size = config.get("total_size")
     train_size = config.get("train_size")
