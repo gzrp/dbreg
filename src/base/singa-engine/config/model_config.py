@@ -17,7 +17,7 @@
 # under the License.
 #
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 
 class ModelConfig:
