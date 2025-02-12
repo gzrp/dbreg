@@ -17,8 +17,15 @@
 # under the License.
 #
 
+import numpy as np
+from singa import  tensor
 from singa import layer
 from singa import model
+from singa import autograd
+
+np_dtype = {"float16": np.float16, "float32": np.float32}
+singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
+
 
 
 class CNN(model.Model):
@@ -49,9 +56,17 @@ class CNN(model.Model):
         y = self.linear2(y)
         return y
 
-    def train_one_batch(self, x, y, dist_option, spars):
+    def train_one_batch(self, x, y, reg_cfg, dist_option, spars):
         out = self.forward(x)
         loss = self.softmax_cross_entropy(out, y)
+
+        if reg_cfg is not None:
+            reg_name = reg_cfg.name
+            if reg_name == 'L2':
+                from ..reg import l2_loss
+                alpha = reg_cfg.alpha
+                reg_loss = l2_loss(self, alpha)
+                loss = autograd.add(loss, reg_loss)
 
         if dist_option == 'plain':
             self.optimizer(loss)

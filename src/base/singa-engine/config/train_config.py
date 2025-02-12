@@ -20,11 +20,12 @@
 from typing import Dict, Any
 
 class TrainConfig:
-    def __init__(self, max_epoch: int, batch_size: int, device: str = "cpu", precision: str ="float32"):
+    def __init__(self, max_epoch: int, batch_size: int, device: str = "cpu", precision: str ="float32", random_seed: int = 0):
         self.max_epoch = max_epoch
         self.batch_size = batch_size
         self.device = device
         self.precision = precision
+        self.random_seed = random_seed
 
 
 def get_train_config_from_dict(config: Dict[str, Any]):
@@ -32,4 +33,5 @@ def get_train_config_from_dict(config: Dict[str, Any]):
     batch_size = config.get("batch_size")
     device = config.get("device")
     precision = config.get("precision")
-    return TrainConfig(max_epoch=max_epoch, batch_size=batch_size, device=device, precision=precision)
+    random_seed = config.get("random_seed")
+    return TrainConfig(max_epoch=max_epoch, batch_size=batch_size, device=device, precision=precision, random_seed=random_seed)

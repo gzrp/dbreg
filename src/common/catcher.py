@@ -20,7 +20,6 @@
 import traceback
 from datetime import datetime
 
-
 def exception_catcher(func):
     def wrapper(*args, **kwargs):
         try:

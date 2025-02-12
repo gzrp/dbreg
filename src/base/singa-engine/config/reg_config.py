@@ -17,7 +17,7 @@
 # under the License.
 #
 
-from typing import Dict, Any, Union, List
+from typing import Dict, Any
 
 
 class RegConfig:
@@ -29,19 +29,11 @@ class L2RegConfig(RegConfig):
         super().__init__(name)
         self.alpha = alpha
 
-class L1RegConfig(RegConfig):
-    def __init__(self, name: str, beta):
-        super().__init__(name)
-        self.beta = beta
-
-def get_reg_config_from_list_or_dict(config: Dict[str, Any]):
+def get_reg_config_from_dict(config: Dict[str, Any]):
     name = config.get("name")
     if name == "L2":
         alpha = config.get("alpha")
         return L2RegConfig(name, alpha)
-    elif name == "L1":
-        beta = config.get("beta")
-        return L1RegConfig(name, beta)
     else:
         raise ValueError(f"Reg {name} not supported.")
 

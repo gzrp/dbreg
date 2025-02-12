@@ -22,6 +22,12 @@ from .dataset_config import get_dataset_config_from_dict
 from .model_config import MLPConfig
 from .model_config import CNNConfig
 from .model_config import get_model_config_from_dict
+from .train_config import TrainConfig
+from .train_config import get_train_config_from_dict
+from .optimizer_config import SgdConfig
+from .optimizer_config import get_optimizer_config_from_dict
+from .reg_config import L2RegConfig
+from .reg_config import get_reg_config_from_dict
 
 
 __all__ = [
@@ -30,4 +36,10 @@ __all__ = [
     "MLPConfig",
     "CNNConfig",
     "get_model_config_from_dict",
+    "TrainConfig",
+    "get_train_config_from_dict",
+    "SgdConfig",
+    "get_optimizer_config_from_dict",
+    "L2RegConfig",
+    "get_reg_config_from_dict",
 ]

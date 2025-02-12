@@ -16,3 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+
+from .reg_loss import l2_loss
+
+__all__ = ['l2_loss']
