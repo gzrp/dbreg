@@ -17,17 +17,25 @@
 # under the License.
 #
 
-import traceback
-from datetime import datetime
+from typing import Dict, Any
+
+from .config import DataSetConfig
+from .config import get_dataset_config_from_dict
+
+def train(data_cfg: Dict[str, Any], model_cfg, trainer_cfg, reg_cfg, opt_cfg):
+
+    pass
 
 
-def exception_catcher(func):
-    def wrapper(*args, **kwargs):
-        try:
-            result = func(*args, **kwargs)
-            return result
-        except Exception as e:
-            sign = '=' * 80 + '\n'
-            print(f'{sign}>>>exception time: \t{datetime.now()}\n>>>exception func: \t{func.__name__}\n>>>exception msg: \t{e}')
-            print(f'{sign}{traceback.format_exc()}{sign}')
-    return wrapper
+
+def _get_dataset_by_cfg(data_cfg) -> DataSetConfig:
+    return get_dataset_config_from_dict(data_cfg)
+
+
+
+def _get_model_by_name(model_name, ):
+    if model_name == "mlp":
+        from .model import MLP
+        model = MLP()
+
+
