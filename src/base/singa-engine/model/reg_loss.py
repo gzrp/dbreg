@@ -19,16 +19,44 @@
 
 from singa import tensor
 from singa import autograd
+from singa import singa_wrap as singa
 
-def l2_loss(model, alpha: float):
+
+def l2_loss_for_model(model, alpha: float):
     loss = tensor.Tensor((1,), requires_grad=True).set_value(0.0)
-    alpha_tensor = tensor.Tensor((1,), requires_grad=False, stores_grad=False).set_value(alpha)
     params = model.get_params()
     for name, param in params.items():
         if '.W' in name:
-            loss_item = autograd.mse_loss(param, tensor.zeros_like(param))
-            loss_item = autograd.mul(loss_item, alpha_tensor)
+            loss_item = l2_loss(param, alpha)
             loss = autograd.add(loss, loss_item)
     return loss
 
 
+class L2LossError(autograd.Operator):
+
+    def __init__(self, t, alpha):
+        super(L2LossError, self).__init__()
+        self.t = t.data
+        self.alpha = alpha
+
+    def forward(self, x):
+        self.err = singa.__sub__(x, self.t)
+        sqr = singa.Square(self.err)
+        loss = singa.SumAll(sqr)
+        self.n = 1
+        for s in x.shape():
+            self.n *= s
+        loss /= self.n
+        loss *= self.alpha
+        return loss
+
+    def backward(self, dy=1.0):
+        dx = self.err
+        dx *= float(2 / self.n)
+        dx *= self.alpha
+        dx *= dy
+        return dx
+
+def l2_loss(x, alpha):
+    t = tensor.zeros_like(x)
+    return L2LossError(t, alpha)(x)[0]

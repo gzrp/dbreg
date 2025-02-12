@@ -21,16 +21,12 @@ from typing import Dict, Any
 
 
 class DataSetConfig:
-    def __init__(self, name: str, total_size: int, train_size: int, val_size: int):
+    def __init__(self, name: str, dir_path: str):
         self.name = name
-        self.total_size = total_size
-        self.train_size = train_size
-        self.val_size = val_size
+        self.dir_path = dir_path
 
 def get_dataset_config_from_dict(config: Dict[str, Any]):
     name = config.get("name")
-    total_size = config.get("total_size")
-    train_size = config.get("train_size")
-    val_size = config.get("val_size")
-    return DataSetConfig(name, total_size, train_size, val_size)
+    dir_path = config.get("dir_path")
+    return DataSetConfig(name, dir_path)
 

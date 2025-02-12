@@ -49,13 +49,12 @@ class MLP(model.Model):
     def train_one_batch(self, x, y, reg_cfg, dist_option, spars):
         out = self.forward(x)
         loss = self.softmax_cross_entropy(out, y)
-
         if reg_cfg is not None:
             reg_name = reg_cfg.name
             if reg_name == 'L2':
-                from ..reg import l2_loss
+                from .reg_loss import l2_loss_for_model
                 alpha = reg_cfg.alpha
-                reg_loss = l2_loss(self, alpha)
+                reg_loss = l2_loss_for_model(self, alpha)
                 loss = autograd.add(loss, reg_loss)
 
         if dist_option == 'plain':

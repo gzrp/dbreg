@@ -18,25 +18,23 @@
 #
 import time
 
+from PIL import Image
 from singa import tensor
 from singa import device
 from singa import model
 import numpy as np
-from .config import DataSetConfig
-from .config import get_dataset_config_from_dict
-from .config import MLPConfig
-from .config import CNNConfig
-from .config import get_model_config_from_dict
-from .config import TrainConfig
-from .config import get_train_config_from_dict
-from .config import SgdConfig
-from .config import get_optimizer_config_from_dict
-from .config import get_reg_config_from_dict
+from config import get_dataset_config_from_dict
+from config import MLPConfig
+from config import CNNConfig
+from config import get_model_config_from_dict
+from config import TrainConfig
+from config import get_train_config_from_dict
+from config import SgdConfig
+from config import get_optimizer_config_from_dict
+from config import get_reg_config_from_dict
 
 np_dtype = {"float16": np.float16, "float32": np.float32}
 singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
-
-
 
 
 def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
@@ -57,7 +55,6 @@ def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
 
     # 获取正则化配置
     reg_config = _get_reg_config(reg_cfg)
-
     # 临时配置
     global_rank = 0
     world_size = 1
@@ -67,11 +64,12 @@ def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
     dist_option='plain'
     spars = None
 
-    if data_cfg == "mnist":
-        from .data import mnist
-        train_x, train_y, val_x, val_y = mnist.load()
+    data_config = _get_dataset_config(data_cfg)
+    if data_config.name == "mnist":
+        from data import mnist
+        train_x, train_y, val_x, val_y = mnist.load(data_config.dir_path)
     else:
-        raise ValueError(f"`r`Not support dataset {data_cfg}")
+        raise ValueError(f"`r`Not support dataset {data_config.name}")
 
     data_num_channels = train_x.shape[1]
     image_size = train_x.shape[2]
@@ -158,7 +156,7 @@ def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
 def _get_model_by_config(model_cfg):
     config_instance = get_model_config_from_dict(model_cfg) # raise value error
     if isinstance(config_instance, MLPConfig):
-        from .model import MLP
+        from model import MLP
         in_features = config_instance.in_features
         hidden_features = config_instance.hidden_features
         out_features = config_instance.out_features
@@ -166,7 +164,7 @@ def _get_model_by_config(model_cfg):
         return mod
 
     if isinstance(config_instance, CNNConfig):
-        from .model import CNN
+        from model import CNN
         in_channels = config_instance.in_channels
         out_channels = config_instance.out_channels
         mod = CNN(num_classes=out_channels, num_channels=in_channels)
@@ -236,3 +234,13 @@ def accuracy(pred, target):
     a = y == target
     correct = np.array(a, "int").sum()
     return correct
+
+
+if __name__ == '__main__':
+    model_cfg_dict = {"name": "mlp", "in_features": 784, "out_features": 10, "hidden_features": 100, "bias": True}
+    data_cfg_dict = {"name": "mnist", "dir_path": "/tmp/mnist"}
+    train_cfg_dict = {"max_epoch": 10, "batch_size": 16, "device": "cpu", "precision": "float32", "random_seed": 0}
+    reg_cfg_dict = {"name": "L2", "alpha": 0.5}
+    # reg_cfg_dict = None
+    opt_cfg_dict = {"name": "sgd", "lr": 0.01, "momentum": 0.9, "weight_decay": 1e-5, "precision": "float32"}
+    train(model_cfg_dict, data_cfg_dict, train_cfg_dict, reg_cfg_dict, opt_cfg_dict)
