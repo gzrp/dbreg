@@ -21,17 +21,16 @@ import time
 from PIL import Image
 from singa import tensor
 from singa import device
-from singa import model
 import numpy as np
-from config import get_dataset_config_from_dict
-from config import MLPConfig
-from config import CNNConfig
-from config import get_model_config_from_dict
-from config import TrainConfig
-from config import get_train_config_from_dict
-from config import SgdConfig
-from config import get_optimizer_config_from_dict
-from config import get_reg_config_from_dict
+from .config import get_dataset_config_from_dict
+from .config import MLPConfig
+from .config import CNNConfig
+from .config import get_model_config_from_dict
+from .config import TrainConfig
+from .config import get_train_config_from_dict
+from .config import SgdConfig
+from .config import get_optimizer_config_from_dict
+from .config import get_reg_config_from_dict
 
 np_dtype = {"float16": np.float16, "float32": np.float32}
 singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
