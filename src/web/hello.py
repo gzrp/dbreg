@@ -17,36 +17,47 @@
 # under the License.
 #
 
-from sanic import Sanic
-from sanic.response import json
-from sanic.exceptions import InvalidUsage
-
+import uuid
+import uvicorn
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi import HTTPException
+from concurrent.futures import ProcessPoolExecutor
 from common.logger import get_logger
 from engine import api
-app = Sanic("engine-app")
+
+app = FastAPI()
+
+MAX_WORKERS = 1
+
+executor = ProcessPoolExecutor(max_workers=2)
 
 logger = get_logger("engine-app", "log")
 
-@app.route("/hello")
-async def hello(request):
-    return json({"message": "hello world."})
+@app.get("/hello")
+async def hello():
+    return {"message": "hello world."}
 
-@app.route("/train", methods=["POST"])
-async def train(request):
-    if not request.json:
-        logger.info("Expecting json payload")
-        raise InvalidUsage("Expecting json payload")
-
-    json_request = request.json
+@app.post("/train")
+async def train(request: Request):
+    try:
+        json_request = await request.json()
+    except:
+        raise HTTPException(status_code=400, detail="Invalid JSON format")
 
     model_cfg = json_request.get("model_cfg")
     data_cfg = json_request.get("data_cfg")
     train_cfg = json_request.get("train_cfg")
     reg_cfg = json_request.get("reg_cfg")
     opt_cfg = json_request.get("opt_cfg")
-    api.train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg)
-    return json({"message": "hello world."})
+    task_id = uuid.uuid1().hex
+    json_request["task_id"] = task_id
+    if len(executor._pending_work_items) >= MAX_WORKERS:
+        return {"code": 500, "message": "the number of training tasks exceeds the maximum configured number. Please try again later."}
+    executor.submit(api.train, task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg)
+    return {"code": 200, "task_id": task_id, "message": "the training task has been submitted successfully! Please wait a few minutes to obtain the training records according to the task id."}
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)

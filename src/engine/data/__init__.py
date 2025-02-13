@@ -16,3 +16,9 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+
+from .mnist import load_mnist
+
+__all__ = [
+    "load_mnist"
+]

@@ -82,7 +82,7 @@ def normalize(train_x, val_x):
     return train_x, val_x
 
 
-def load(dir_path='/tmp/mnist'):
+def load_mnist(dir_path='/tmp/mnist'):
     train_x, train_y, val_x, val_y = load_dataset(dir_path)
     train_x, val_x = normalize(train_x, val_x)
     train_x = train_x.astype(np.float32)

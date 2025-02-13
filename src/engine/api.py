@@ -31,12 +31,15 @@ from .config import get_train_config_from_dict
 from .config import SgdConfig
 from .config import get_optimizer_config_from_dict
 from .config import get_reg_config_from_dict
+from common import get_logger
 
 np_dtype = {"float16": np.float16, "float32": np.float32}
 singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
 
 
-def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
+def train(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
+    logger = get_logger(task_id, "log")
+    res = {"model_cfg": model_cfg, "data_cfg": data_cfg, "train_cfg": train_cfg, "reg_cfg": reg_cfg, "opt_cfg": opt_cfg}
     train_config = _get_train_config(train_cfg)
     # 训练配置
     max_epoch = train_config.max_epoch
@@ -65,8 +68,8 @@ def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
 
     data_config = _get_dataset_config(data_cfg)
     if data_config.name == "mnist":
-        from data import mnist
-        train_x, train_y, val_x, val_y = mnist.load(data_config.dir_path)
+        from .data import load_mnist
+        train_x, train_y, val_x, val_y = load_mnist(data_config.dir_path)
     else:
         raise ValueError(f"`r`Not support dataset {data_config.name}")
 
@@ -75,7 +78,7 @@ def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
     data_size = np.prod(train_x.shape[1:train_x.ndim]).item()
     data_num_classes = (np.max(train_y) + 1).item()
 
-    print(data_num_channels, image_size, data_size, data_num_classes)
+    # print(data_num_channels, image_size, data_size, data_num_classes)
 
     # 获取模型
     mod = _get_model_by_config(model_cfg)  # raise value error
@@ -102,11 +105,14 @@ def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
     mod.compile([tx], is_train=True, use_graph=False, sequential=False)
     dev.SetVerbosity(verbosity)
 
+    epoch_records = []
+
     for epoch in range(max_epoch):
+        record_item = {"epoch": epoch}
         start_time = time.time()
         np.random.shuffle(idx)
         if global_rank == 0:
-            print('Starting Epoch %d:' % (epoch))
+            print('task_id: %s, Starting Epoch %d:' % (task_id, epoch))
         # Training phase
         train_correct = np.zeros(shape=[1], dtype=np.float32)
         test_correct = np.zeros(shape=[1], dtype=np.float32)
@@ -130,9 +136,11 @@ def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
             train_loss += tensor.to_numpy(loss)[0]
 
         if global_rank == 0:
-            print('Training loss = %.2f, training accuracy = %.2f %%' %
-                  (train_loss, train_correct / (total_train * world_size) * 100.0), flush=True)
-
+            train_acc =  train_correct / (total_train * world_size) * 100.0
+            print('task_id: %s, Training loss = %.2f, training accuracy = %.2f %%' %
+                  (task_id, train_loss, train_acc), flush=True)
+            record_item["train_loss"] = '%.2f' % train_loss
+            record_item["train_acc"] = '%.2f %%' % train_acc
         # Evaluation phase
         mod.eval()
         for b in range(num_val_batch):
@@ -148,14 +156,22 @@ def train(model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
             test_correct += accuracy(tensor.to_numpy(out_test), y)
         # Output the evaluation accuracy
         if global_rank == 0:
-            print('Evaluation accuracy = %.2f %%, Elapsed Time = %fs' %
-                  (test_correct / (total_val * world_size) * 100.0, time.time() - start_time), flush=True)
+            eval_acc = test_correct / (total_val * world_size) * 100.0
+            elapsed_time = time.time() - start_time
+            print('task_id: %s, Evaluation accuracy = %.2f %%, Elapsed Time = %fs' %
+                  (task_id, eval_acc, elapsed_time), flush=True)
+            record_item["eval_acc"] = '%.2f %%' % eval_acc
+            record_item["elapsed_time"] = '%fs' % elapsed_time
+        epoch_records.append(record_item)
+    res["epoch_records"] = epoch_records
+    logger.info(res)
+    # return res
 
 
 def _get_model_by_config(model_cfg):
     config_instance = get_model_config_from_dict(model_cfg) # raise value error
     if isinstance(config_instance, MLPConfig):
-        from model import MLP
+        from .model import MLP
         in_features = config_instance.in_features
         hidden_features = config_instance.hidden_features
         out_features = config_instance.out_features
@@ -163,7 +179,7 @@ def _get_model_by_config(model_cfg):
         return mod
 
     if isinstance(config_instance, CNNConfig):
-        from model import CNN
+        from .model import CNN
         in_channels = config_instance.in_channels
         out_channels = config_instance.out_channels
         mod = CNN(num_classes=out_channels, num_channels=in_channels)
