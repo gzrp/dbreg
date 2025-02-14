@@ -19,17 +19,7 @@
 *
 *************************************************************/
 
-use pgrx::prelude::*;
+mod register;
 
-::pgrx::pg_module_magic!();
-
-pub mod bindings;
-
-
-#[pg_extern]
-fn hello_pg_extension() -> &'static str {
-    "Hello, pg_extension"
-}
-
-
-
+#[cfg(feature = "python")]
+pub mod train;
