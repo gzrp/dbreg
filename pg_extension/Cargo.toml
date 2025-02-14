@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 
 [features]
 default = ["pg14", "python"]
-python = ["py03"]
+python = ["pyo3"]
 pg12 = ["pgrx/pg12", "pgrx-tests/pg12" ]
 pg13 = ["pgrx/pg13", "pgrx-tests/pg13" ]
 pg14 = ["pgrx/pg14", "pgrx-tests/pg14" ]
