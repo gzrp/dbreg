@@ -3,8 +3,8 @@ use pgrx::prelude::*;
 ::pgrx::pg_module_magic!();
 
 #[pg_extern]
-fn hello_my_extension() -> &'static str {
-    "Hello, my_extension"
+fn hello_pg_extension() -> &'static str {
+    "Hello, pg_extension"
 }
 
 #[cfg(any(test, feature = "pg_test"))]
@@ -13,8 +13,8 @@ mod tests {
     use pgrx::prelude::*;
 
     #[pg_test]
-    fn test_hello_my_extension() {
-        assert_eq!("Hello, my_extension", crate::hello_my_extension());
+    fn test_hello_pg_extension() {
+        assert_eq!("Hello, pg_extension", crate::hello_pg_extension());
     }
 
 }

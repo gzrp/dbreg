@@ -1,5 +1,5 @@
 [package]
-name = "my_extension"
+name = "pg_extension"
 version = "0.0.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "lib"]
 
 [[bin]]
-name = "pgrx_embed_my_extension"
+name = "pgrx_embed_pg_extension"
 path = "./src/bin/pgrx_embed.rs"
 
 [features]
