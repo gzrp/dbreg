@@ -34,10 +34,7 @@ pub fn run_python_train_function(
     let parameters_str = parameters.to_string();
     let results = Python::with_gil(|py| -> String {
         let run_script: Py<PyAny> = py_module.getattr(py, function_name).unwrap().into();
-
-
         let result = run_script.call1(py, PyTuple::new(py, &[parameters_str.into_pyobject(py)]))?;
-
         let result = match result {
             Err(e) => {
                 let traceback = e.traceback(py).unwrap().format().unwrap();
