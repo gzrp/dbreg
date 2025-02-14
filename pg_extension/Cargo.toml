@@ -4,7 +4,11 @@ version = "0.0.1"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "lib"]
+
+[[bin]]
+name = "pgrx_embed_pg_extension"
+path = "./src/bin/pgrx_embed.rs"
 
 [features]
 default = ["pg14", "python"]
