@@ -16,8 +16,10 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-import time
 
+import os
+import re
+import time
 from PIL import Image
 from singa import tensor
 from singa import device
@@ -35,6 +37,23 @@ from common import get_logger
 
 np_dtype = {"float16": np.float16, "float32": np.float32}
 singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
+
+
+def get_train_result(task_id):
+    filename = f"/tmp/log/{task_id}.log"
+    if not os.path.exists(filename):
+        return None
+
+    log_pattern = re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (\w+) - (.+)')
+    with open(filename, "r", encoding='UTF-8') as f:
+        ctx = f.readline()
+
+    match = log_pattern.match(ctx.strip())
+    if match is None:
+        return None
+
+    log_time, log_level, log_message = match.groups()
+    return log_message
 
 
 def train(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):

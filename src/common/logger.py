@@ -23,12 +23,12 @@ from logging.handlers import TimedRotatingFileHandler
 
 
 def get_logger(name, folder_name):
-    if not os.path.exists(f"./{folder_name}"):
-        os.makedirs(f"./{folder_name}")
+    if not os.path.exists(f"/tmp/{folder_name}"):
+        os.makedirs(f"/tmp/{folder_name}")
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    filename = f"./{folder_name}/{name}.log"
+    filename = f"/tmp/{folder_name}/{name}.log"
     fh = TimedRotatingFileHandler(filename, when='D', backupCount=7)
     sh = logging.StreamHandler()
 

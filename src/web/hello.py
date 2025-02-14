@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-
+import ast
 import uuid
 import uvicorn
 from fastapi import FastAPI
@@ -58,6 +58,13 @@ async def train(request: Request):
     return {"code": 200, "task_id": task_id, "message": "the training task has been submitted successfully! Please wait a few minutes to obtain the training records according to the task id."}
 
 
+@app.get("/results/{task_id}")
+async def result(task_id: str):
+    ans = api.get_train_result(task_id)
+    ans_dict = ast.literal_eval(ans)
+    return {"code": 200, "task_id": task_id, "result": ans_dict}
+
 if __name__ == '__main__':
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+    print("done.")
