@@ -17,3 +17,18 @@
     under the License.
 -->
 
+# cargo pgrx
+
+```shell
+# 1. create a new pg extension 
+cargo pgrx new pg_extension
+# 2. init pg env
+cargo pgrx init
+# 3. cd pg_extension
+cargo pgrx run
+# 4. 
+pg_extension=# CREATE EXTENSION pg_extension;
+CREATE EXTENSION
+my_extension=# SELECT hello_pg_extension();
+hello_pg_extension
+```
