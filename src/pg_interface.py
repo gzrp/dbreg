@@ -16,3 +16,9 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+
+import orjson
+
+def echo(msg: str):
+    return orjson.dumps({'msg': msg}).decode('utf-8')
+
