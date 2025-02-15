@@ -42,7 +42,7 @@ singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
 
 
 def get_train_result(task_id):
-    filename = f"/tmp/log/{task_id}.log"
+    filename = f"/tmp/log/{task_id}_result.log"
     if not os.path.exists(filename):
         return None
 

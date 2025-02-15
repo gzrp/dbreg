@@ -37,10 +37,10 @@ fn hello_pg_extension() -> &'static str {
 #[cfg(feature = "python")]
 #[pg_extern(immutable, parallel_safe, name = "echo_python")]
 fn echo_python(message: String) -> String {
-    let mut msg_map = HashMap::new();
-    msg_map.insert("message", message);
-    let msg_json = json!(msg_map).to_string();
-    crate::bindings::trainer::echo_python(&msg_json).to_string()
+    let mut args_map = HashMap::new();
+    args_map.insert("message", message);
+    let args_json = json!(msg_map).to_string();
+    crate::bindings::trainer::echo_python(&args_json).to_string()
 }
 
 #[cfg(feature = "python")]
@@ -111,12 +111,19 @@ fn train(model_name: String,
     train_map.insert("opt_cfg".to_string(), opt_config);
 
     // SELECT train('mlp', 784, 10, 100, true, 'mnist', '/tmp/mnist', 2, 16, 'cpu', 'float32', 0, 'L2', '0.5', 'sgd', '0.01', '0.9', '0.0001', 'float32');
-    let msg_json = json!(train_map).to_string();
-    crate::bindings::trainer::train(&msg_json).to_string()
+    let args_json = json!(train_map).to_string();
+    crate::bindings::trainer::train(&args_json).to_string()
 }
 
 
-
+#[cfg(feature = "python")]
+#[pg_extern(immutable, parallel_safe, name = "train_result")]
+fn train_result(task_id: String) -> String {
+    let mut args_map = HashMap::new();
+    args_map.insert("task_id".to_string, Value::from(task_id)
+    let args_json = json!(args_map).to_string();
+    crate::bindings::trainer::train_result(&args_json).to_string()
+}
 
 
 

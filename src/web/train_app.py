@@ -67,9 +67,17 @@ async def train(request: Request):
 
 @app.get("/results/{task_id}")
 async def result(task_id: str):
-    ans = api.get_train_result(task_id)
-    ans_dict = ast.literal_eval(ans)
-    return {"code": 200, "task_id": task_id, "result": ans_dict}
+    try:
+        ans = api.get_train_result(task_id)
+        if ans is not None:
+            ans_dict = ast.literal_eval(ans)
+            return {"code": 200, "task_id": task_id, "result": ans_dict}
+        else:
+            return {"code": 200, "task_id": "task_id", "result": "the training task has not yet completed, please try again later."}
+    except Exception as e:
+        return {"code": 500, "task_id": task_id, "message": "failed to obtain training results. The reasons for the failure are as follows" + str(e)}
+
+
 
 if __name__ == '__main__':
 

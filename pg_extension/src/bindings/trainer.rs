@@ -30,3 +30,7 @@ pub fn echo_python(message: &String) -> serde_json::Value {
 pub fn train(args: &String) -> serde_json::Value {
     run_python_train_function(&PY_TRAIN_MODULE, args, "train")
 }
+
+pub fn train_result(args: &String) -> serde_json::Value {
+    run_python_train_function(&PY_TRAIN_MODULE, args, "train_result")
+}

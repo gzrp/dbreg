@@ -62,6 +62,14 @@ def train(encoded_str: str):
     return orjson.dumps(resp.json()).decode('utf-8')
 
 
+@exception_catcher_with_logger(logger=logger)
+def train(encoded_str: str):
+    params = json.loads(encoded_str)
+    logger.info(params)
+    task_id = params.get("task_id")
+
+    resp = requests.get('http://127.0.0.1:8000/results/{task_id}'.format(task_id=task_id))
+    return orjson.dumps(resp.json()).decode('utf-8')
 
 
 
