@@ -131,7 +131,8 @@ def train(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
         start_time = time.time()
         np.random.shuffle(idx)
         if global_rank == 0:
-            print('task_id: %s, Starting Epoch %d:' % (task_id, epoch))
+            logger.info('task_id: %s, Starting Epoch %d:' % (task_id, epoch))
+            # print('task_id: %s, Starting Epoch %d:' % (task_id, epoch))
         # Training phase
         train_correct = np.zeros(shape=[1], dtype=np.float32)
         test_correct = np.zeros(shape=[1], dtype=np.float32)
@@ -156,8 +157,10 @@ def train(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
 
         if global_rank == 0:
             train_acc =  train_correct / (total_train * world_size) * 100.0
-            print('task_id: %s, Training loss = %.2f, training accuracy = %.2f %%' %
-                  (task_id, train_loss, train_acc), flush=True)
+            logger.info('task_id: %s, Training loss = %.2f, training accuracy = %.2f %%' %
+                  (task_id, train_loss, train_acc))
+            # print('task_id: %s, Training loss = %.2f, training accuracy = %.2f %%' %
+            #       (task_id, train_loss, train_acc), flush=True)
             record_item["train_loss"] = '%.2f' % train_loss
             record_item["train_acc"] = '%.2f %%' % train_acc
         # Evaluation phase
@@ -177,8 +180,10 @@ def train(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
         if global_rank == 0:
             eval_acc = test_correct / (total_val * world_size) * 100.0
             elapsed_time = time.time() - start_time
-            print('task_id: %s, Evaluation accuracy = %.2f %%, Elapsed Time = %fs' %
-                  (task_id, eval_acc, elapsed_time), flush=True)
+            logger.info('task_id: %s, Evaluation accuracy = %.2f %%, Elapsed Time = %fs' %
+                  (task_id, eval_acc, elapsed_time))
+            # print('task_id: %s, Evaluation accuracy = %.2f %%, Elapsed Time = %fs' %
+            #       (task_id, eval_acc, elapsed_time), flush=True)
             record_item["eval_acc"] = '%.2f %%' % eval_acc
             record_item["elapsed_time"] = '%fs' % elapsed_time
         epoch_records.append(record_item)

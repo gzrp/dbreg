@@ -22,4 +22,4 @@
 mod register;
 
 #[cfg(feature = "python")]
-pub mod train;
+pub mod trainer;

@@ -29,6 +29,7 @@ cargo pgrx run
 # 4. DROP EXTENSION IF EXISTS pg_extension;
 pg_extension=# CREATE EXTENSION pg_extension;
 CREATE EXTENSION
-my_extension=# SELECT hello_pg_extension();
+pg_extension=# \dx+ pg_extension
+pg_extension=# SELECT hello_pg_extension();
 hello_pg_extension
 ```

@@ -17,8 +17,67 @@
 # under the License.
 #
 
+import json
 import orjson
+import os
+import requests
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+
+def get_logger(name, folder_name):
+    if not os.path.exists(f"/tmp/{folder_name}"):
+        os.makedirs(f"/tmp/{folder_name}")
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    filename = f"/tmp/{folder_name}/{name}.log"
+    fh = TimedRotatingFileHandler(filename, when='D', backupCount=7)
+    sh = logging.StreamHandler()
+
+    fh.setFormatter(formatter)
+    sh.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.addHandler(sh)
+    return logger
+
+
+logger = get_logger("pg-interface", "log")
 
 def echo_python(msg: str):
     return orjson.dumps(msg).decode('utf-8')
+
+
+def train(encoded_str: str):
+    params = json.loads(encoded_str)
+    logger.info(params)
+
+    model_cfg = params.get("model_cfg")
+    data_cfg = params.get("data_cfg")
+    train_cfg = params.get("train_cfg")
+    reg_cfg = params.get("reg_cfg")
+    opt_cfg = params.get("opt_cfg")
+
+    reg_cfg["alpha"] = float(reg_cfg.get("alpha"))
+
+    opt_cfg["momentum"] = float(opt_cfg.get("momentum"))
+    opt_cfg["lr"] = float(opt_cfg.get("lr"))
+    opt_cfg["weight_decay"] = float(opt_cfg.get("weight_decay"))
+
+    logger.info(model_cfg)
+    logger.info(data_cfg)
+    logger.info(train_cfg)
+    logger.info(reg_cfg)
+    logger.info(opt_cfg)
+
+    args = {"model_cfg": model_cfg, "data_cfg": data_cfg, "train_cfg": train_cfg, "reg_cfg": reg_cfg,
+            "opt_cfg": opt_cfg}
+
+    # return orjson.dumps(args).decode('utf-8')
+    resp = requests.post('http://127.0.0.1:8000/train', json=args)
+    return orjson.dumps(resp.json()).decode('utf-8')
+
+
+
+
 

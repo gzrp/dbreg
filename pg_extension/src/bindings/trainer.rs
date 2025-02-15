@@ -26,3 +26,7 @@ use crate::bindings::register::run_python_train_function;
 pub fn echo_python(message: &String) -> serde_json::Value {
     run_python_train_function(&PY_TRAIN_MODULE, message, "echo_python")
 }
+
+pub fn train(args: &String) -> serde_json::Value {
+    run_python_train_function(&PY_TRAIN_MODULE, args, "train")
+}
