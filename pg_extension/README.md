@@ -26,7 +26,7 @@ cargo pgrx new pg_extension
 cargo pgrx init
 # 3. cd pg_extension
 cargo pgrx run
-# 4. 
+# 4. DROP EXTENSION IF EXISTS pg_extension;
 pg_extension=# CREATE EXTENSION pg_extension;
 CREATE EXTENSION
 my_extension=# SELECT hello_pg_extension();

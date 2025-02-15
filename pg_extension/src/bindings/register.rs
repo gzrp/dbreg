@@ -23,8 +23,6 @@ use log::error;
 use pyo3::prelude::*;
 use once_cell::sync::Lazy;
 use pyo3::ffi::c_str;
-use pyo3::IntoPyObjectExt;
-use pyo3::types::PyTuple;
 
 pub fn run_python_train_function(
     py_module: &Lazy<Py<PyModule>>,
@@ -34,7 +32,8 @@ pub fn run_python_train_function(
     let parameters_str = parameters.to_string();
     let results = Python::with_gil(|py| -> String {
         let run_script: Py<PyAny> = py_module.getattr(py, function_name).unwrap().into();
-        let result = run_script.call1(py, PyTuple::new(py, &[parameters_str.into_pyobject(py)]))?;
+        let args = (parameters_str,);
+        let result = run_script.call1(py, args);
         let result = match result {
             Err(e) => {
                 let traceback = e.traceback(py).unwrap().format().unwrap();

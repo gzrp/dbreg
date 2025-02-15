@@ -19,6 +19,6 @@
 
 import orjson
 
-def echo(msg: str):
-    return orjson.dumps({'msg': msg}).decode('utf-8')
+def echo_python(msg: str):
+    return orjson.dumps(msg).decode('utf-8')
 
