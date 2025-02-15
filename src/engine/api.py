@@ -20,6 +20,8 @@
 import os
 import re
 import time
+import traceback
+from datetime import datetime
 from PIL import Image
 from singa import tensor
 from singa import device
@@ -55,10 +57,21 @@ def get_train_result(task_id):
     log_time, log_level, log_message = match.groups()
     return log_message
 
-
 def train(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
+    logger = get_logger(task_id + '_result', "log")
+    try:
+        res = _run(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg)
+        logger.info(res)
+    except Exception as e:
+        logger.info(
+            {"task_id": task_id, "exception_time": datetime.now(), "exception_msg": e, "traceback": traceback.format_exc()}
+        )
+
+
+def _run(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
     logger = get_logger(task_id, "log")
-    res = {"model_cfg": model_cfg, "data_cfg": data_cfg, "train_cfg": train_cfg, "reg_cfg": reg_cfg, "opt_cfg": opt_cfg}
+    res = {"task_id": task_id, "model_cfg": model_cfg, "data_cfg": data_cfg, "train_cfg": train_cfg, "reg_cfg": reg_cfg, "opt_cfg": opt_cfg}
+    logger.info(res)
     train_config = _get_train_config(train_cfg)
     # 训练配置
     max_epoch = train_config.max_epoch
@@ -189,7 +202,7 @@ def train(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
         epoch_records.append(record_item)
     res["epoch_records"] = epoch_records
     logger.info(res)
-    # return res
+    return res
 
 
 def _get_model_by_config(model_cfg):

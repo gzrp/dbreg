@@ -19,35 +19,19 @@
 
 import json
 import orjson
-import os
 import requests
-import logging
-from logging.handlers import TimedRotatingFileHandler
-
-
-def get_logger(name, folder_name):
-    if not os.path.exists(f"/tmp/{folder_name}"):
-        os.makedirs(f"/tmp/{folder_name}")
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    filename = f"/tmp/{folder_name}/{name}.log"
-    fh = TimedRotatingFileHandler(filename, when='D', backupCount=7)
-    sh = logging.StreamHandler()
-
-    fh.setFormatter(formatter)
-    sh.setFormatter(formatter)
-    logger.addHandler(fh)
-    logger.addHandler(sh)
-    return logger
-
+from common.catcher import exception_catcher_with_logger
+from common.logger import get_logger
 
 logger = get_logger("pg-interface", "log")
 
+
+@exception_catcher_with_logger(logger=logger)
 def echo_python(msg: str):
     return orjson.dumps(msg).decode('utf-8')
 
 
+@exception_catcher_with_logger(logger=logger)
 def train(encoded_str: str):
     params = json.loads(encoded_str)
     logger.info(params)
