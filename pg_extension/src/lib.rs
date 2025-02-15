@@ -39,7 +39,7 @@ fn hello_pg_extension() -> &'static str {
 fn echo_python(message: String) -> String {
     let mut args_map = HashMap::new();
     args_map.insert("message", message);
-    let args_json = json!(msg_map).to_string();
+    let args_json = json!(args_map).to_string();
     crate::bindings::trainer::echo_python(&args_json).to_string()
 }
 
@@ -120,7 +120,7 @@ fn train(model_name: String,
 #[pg_extern(immutable, parallel_safe, name = "train_result")]
 fn train_result(task_id: String) -> String {
     let mut args_map = HashMap::new();
-    args_map.insert("task_id".to_string, Value::from(task_id)
+    args_map.insert("task_id".to_string(), Value::from(task_id));
     let args_json = json!(args_map).to_string();
     crate::bindings::trainer::train_result(&args_json).to_string()
 }

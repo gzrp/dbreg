@@ -17,21 +17,53 @@
 # under the License.
 #
 
+import os
+import logging
+import traceback
 import json
 import orjson
 import requests
-from common.catcher import exception_catcher_with_logger
-from common.logger import get_logger
+from datetime import datetime
+from logging.handlers import TimedRotatingFileHandler
+
+def get_logger(name, folder_name):
+    if not os.path.exists(f"/tmp/{folder_name}"):
+        os.makedirs(f"/tmp/{folder_name}")
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    filename = f"/tmp/{folder_name}/{name}.log"
+    fh = TimedRotatingFileHandler(filename, when='D', backupCount=7)
+    sh = logging.StreamHandler()
+
+    fh.setFormatter(formatter)
+    sh.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.addHandler(sh)
+    return logger
+
+
+def exception_catcher(func):
+    def wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            return result
+        except Exception as e:
+            logger.error({"exception_func": func.__name__, "exception_msg": e, "traceback": traceback.format_exc()})
+            return orjson.dumps(
+                {"exception_func": func.__name__, "exception_msg": str(e)},
+            ).decode('utf-8')
+    return wrapper
+
 
 logger = get_logger("pg-interface", "log")
 
-
-@exception_catcher_with_logger(logger=logger)
+@exception_catcher
 def echo_python(msg: str):
     return orjson.dumps(msg).decode('utf-8')
 
 
-@exception_catcher_with_logger(logger=logger)
+@exception_catcher
 def train(encoded_str: str):
     params = json.loads(encoded_str)
     logger.info(params)
@@ -62,14 +94,11 @@ def train(encoded_str: str):
     return orjson.dumps(resp.json()).decode('utf-8')
 
 
-@exception_catcher_with_logger(logger=logger)
-def train(encoded_str: str):
+@exception_catcher
+def train_result(encoded_str: str):
     params = json.loads(encoded_str)
     logger.info(params)
     task_id = params.get("task_id")
-
     resp = requests.get('http://127.0.0.1:8000/results/{task_id}'.format(task_id=task_id))
     return orjson.dumps(resp.json()).decode('utf-8')
-
-
 

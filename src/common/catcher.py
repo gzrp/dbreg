@@ -19,7 +19,6 @@
 
 import traceback
 from datetime import datetime
-from orjson import orjson
 
 
 def exception_catcher(func):
@@ -33,15 +32,3 @@ def exception_catcher(func):
             print(f'{sign}{traceback.format_exc()}{sign}')
     return wrapper
 
-def exception_catcher_with_logger(logger):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            try:
-                result = func(*args, **kwargs)
-                return result
-            except Exception as e:
-                return orjson.dumps(
-                    {"exception_time": datetime.now(), "exception_func": func.__name__, "exception_msg": e, "traceback": traceback.format_exc()},
-                ).decode('utf-8')
-        return wrapper
-    return decorator

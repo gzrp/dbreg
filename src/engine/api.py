@@ -201,7 +201,7 @@ def _run(task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg):
             record_item["elapsed_time"] = '%fs' % elapsed_time
         epoch_records.append(record_item)
     res["epoch_records"] = epoch_records
-    logger.info(res)
+    # logger.info(res)
     return res
 
 

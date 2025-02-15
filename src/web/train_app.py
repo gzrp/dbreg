@@ -20,7 +20,6 @@
 import ast
 import uuid
 import uvicorn
-from exceptiongroup import catch
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi import HTTPException
@@ -73,7 +72,7 @@ async def result(task_id: str):
             ans_dict = ast.literal_eval(ans)
             return {"code": 200, "task_id": task_id, "result": ans_dict}
         else:
-            return {"code": 200, "task_id": "task_id", "result": "the training task has not yet completed, please try again later."}
+            return {"code": 200, "task_id": task_id, "result": "the training task has not yet completed, please try again later."}
     except Exception as e:
         return {"code": 500, "task_id": task_id, "message": "failed to obtain training results. The reasons for the failure are as follows" + str(e)}
 

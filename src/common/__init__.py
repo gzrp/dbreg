@@ -18,7 +18,9 @@
 #
 
 from .logger import get_logger
+from .catcher import exception_catcher
 
 __all__ = [
-    "get_logger"
+    "get_logger",
+    "exception_catcher",
 ]
