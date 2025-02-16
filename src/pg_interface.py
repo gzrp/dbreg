@@ -23,7 +23,6 @@ import traceback
 import json
 import orjson
 import requests
-from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 
 def get_logger(name, folder_name):
