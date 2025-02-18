@@ -22,7 +22,9 @@ import threading
 import time
 from typing import List
 import psycopg2
-
+from sanic import Sanic
+from sanic.response import json
+from sanic.exceptions import InvalidUsage
 from common.logger import get_logger
 
 logger = get_logger("cache-app", "log")
@@ -65,7 +67,6 @@ class CacheService:
                 try:
                     batch, time_usg = self._fetch_and_preprocess(conn)
                     self.queue.put(batch)
-                    print(f"data is fetched, {self.namespace} queue_size={self.queue.qsize()}, time_usg={time_usg}")
                     logger.info(f"data is fetched, queue_size={self.queue.qsize()}, time_usg={time_usg}")
                     # block until a free slot is available
                     time.sleep(0.1)
@@ -125,3 +126,39 @@ class CacheService:
     def size(self):
         return self.queue.qsize()
 
+
+app = Sanic("cache-app")
+
+@app.get("/hello")
+async def hello(request):
+    return {"message": "hello cache-app."}
+
+
+@app.post("/start")
+async def start_cache(request):
+    # Check if request is JSON
+    if not request.json:
+        logger.info("Expecting JSON payload")
+        raise InvalidUsage("Expecting JSON payload")
+
+    json_request = request.json
+    columns = json_request.get("columns")
+    namespace = json_request.get("namespace")
+    if columns is None:
+        return json({"code": 500, "message": "No columns specified"})
+    if namespace not in ["train", "valid", "test"]:
+        return json({"code": 500, "message": "namespace is not correct"})
+
+    table_name = json_request.get("table_name")
+    batch_size = json_request.get("batch_size")
+
+    try:
+        if not hasattr(app.ctx, f'{table_name}_{namespace}_cache'):
+            setattr(app.ctx, f'{table_name}_{namespace}_cache', CacheService(db_conn, table_name, namespace, columns, batch_size))
+        return json({"code": 200, "message": "the cache service is started successfully."})
+    except Exception as e:
+        return json({"code": 500, "message": str(e)})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8094)
