@@ -22,7 +22,6 @@ import threading
 import time
 from typing import List
 import psycopg2
-from torch.fx.experimental.unification.dispatch import namespace
 
 from common.logger import get_logger
 
