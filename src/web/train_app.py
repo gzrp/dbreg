@@ -53,12 +53,12 @@ async def train(request):
     task_id = uuid.uuid1().hex
     json_request["task_id"] = task_id
     if len(executor._pending_work_items) >= MAX_WORKERS:
-        return json({"code": 500, "message": "the number of training tasks exceeds the maximum configured number. Please try again later."})
+        return json({"error": "the number of training tasks exceeds the maximum configured number. Please try again later."}, status=500)
 
     try:
         executor.submit(api.train, task_id, model_cfg, data_cfg, train_cfg, reg_cfg, opt_cfg)
     except Exception as e:
-        return json({"code": 500, "message": "the training task failed to submit, specifically because: " + str(e)})
+        return json({"error": "the training task failed to submit, specifically because: " + str(e)}, status=500)
 
     return json({"code": 200, "task_id": task_id, "message": "the training task has been submitted successfully! Please wait a few minutes to obtain the training records according to the task id."})
 
@@ -73,7 +73,7 @@ async def result(request, task_id: str):
         else:
             return json({"code": 200, "task_id": task_id, "result": "the training task has not yet completed, please try again later."})
     except Exception as e:
-        return json({"code": 500, "task_id": task_id, "message": "failed to obtain training results. The reasons for the failure are as follows" + str(e)})
+        return json({"task_id": task_id, "message": "failed to obtain training results. The reasons for the failure are as follows" + str(e)}, status=500)
 
 
 

@@ -145,9 +145,9 @@ async def start_cache(request):
     columns = json_request.get("columns")
     namespace = json_request.get("namespace")
     if columns is None:
-        return json({"code": 500, "message": "No columns specified"})
+        return json({"error": "No columns specified"}, status=500)
     if namespace not in ["train", "valid", "test"]:
-        return json({"code": 500, "message": "namespace is not correct"})
+        return json({"error": "namespace is not correct"}, status=500)
 
     table_name = json_request.get("table_name")
     batch_size = json_request.get("batch_size")
@@ -157,7 +157,23 @@ async def start_cache(request):
             setattr(app.ctx, f'{table_name}_{namespace}_cache', CacheService(db_conn, table_name, namespace, columns, batch_size))
         return json({"code": 200, "message": "the cache service is started successfully."})
     except Exception as e:
-        return json({"code": 500, "message": str(e)})
+        return json({"error": str(e)}, status=500)
+
+
+@app.get("/get")
+async def get(request):
+    namespace = request.args.get("namespace")
+    table_name = request.args.get("table_name")
+    # check if exist
+    if not hasattr(app.ctx, f'{table_name}_{namespace}_cache'):
+        return json({"error": f"{table_name}_{namespace}_cache not start yet"}, status=404)
+
+    batch_data = getattr(app.ctx, f'{table_name}_{namespace}_cache').get()
+    # return
+    if batch_data is None:
+        return json({"error": "No data available"}, status=404)
+    else:
+        return json(batch_data)
 
 
 if __name__ == "__main__":
