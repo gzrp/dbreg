@@ -1,7 +1,11 @@
+import os
 import numpy as np
 from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
 
+
+def numpy_collate_fn(batch):
+    return batch
 
 class LibSvmDataset(Dataset):
     def __init__(self, file_path, fields):
@@ -49,9 +53,21 @@ class LibSvmDataset(Dataset):
         return self.samples_cnt
 
     def __getitem__(self, idx):
-        pass
+        return {'id': self.feat_id[idx],
+                'value': self.feat_value[idx],
+                'y': self.y[idx]}
 
-if __name__ == '__main__':
-    da = LibSvmDataset("/tmp/pycharm_project_dbreg/resources/dataset/frappe/train.libsvm", 10)
+def libsvm_dataloader(file_dir, fields, batch_size, collect_type=None, workers=1):
+    train_path = os.path.join(file_dir, 'train.libsvm')
+    valid_path = os.path.join(file_dir, 'valid.libsvm')
+    test_path = os.path.join(file_dir, 'test.libsvm')
 
-    print(len(da))
+    collate_fn = None
+    if collect_type == 'numpy':
+        collate_fn = numpy_collate_fn
+
+    train_loader = DataLoader(LibSvmDataset(train_path, fields), batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=workers)
+    valid_loader = DataLoader(LibSvmDataset(valid_path, fields), batch_size=batch_size, shuffle=False, collate_fn=collate_fn, num_workers=workers)
+    test_loader = DataLoader(LibSvmDataset(test_path, fields), batch_size=batch_size, shuffle=False, collate_fn=collate_fn, num_workers=workers)
+
+    return train_loader, valid_loader, test_loader
