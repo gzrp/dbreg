@@ -1,0 +1,57 @@
+import numpy as np
+from tqdm import tqdm
+from torch.utils.data import Dataset, DataLoader
+
+
+class LibSvmDataset(Dataset):
+    def __init__(self, file_path, fields):
+        self.file_path = file_path
+        self.samples_cnt = self._libsvm_lines_cnt(file_path)
+        self.fields = fields
+        self.feat_id =  np.zeros((self.samples_cnt, self.fields), dtype=np.int32)
+        self.feat_value = np.zeros((self.samples_cnt, self.fields), dtype=np.float32)
+        self.y = np.zeros(self.samples_cnt, dtype=np.float32)
+        # load data
+        self._libsvm_load()
+
+    def _libsvm_load(self):
+        idx = 0
+        with tqdm(total=self.samples_cnt) as pbar:
+            with open(self.file_path) as fp:
+                line = fp.readline()
+                while line:
+                    sample = self._libsvm_decode(line)
+                    self.feat_id[idx] = sample['id']
+                    self.feat_value[idx] = sample['value']
+                    self.y[idx] = sample['y']
+                    idx += 1
+                    line = fp.readline()
+                    pbar.update(1)
+
+
+    @staticmethod
+    def _libsvm_decode(line):
+        columns = line.split(' ')
+        map_func = lambda pair: (int(pair[0]), float(pair[1]))
+        id, value = zip(*map(lambda col: map_func(col.split(':')), columns[1:]))
+        sample = {'id': list(id),
+                  'value': list(value),
+                  'y': float(columns[0])}
+        return sample
+
+    @staticmethod
+    def _libsvm_lines_cnt(file_path):
+        with open(file_path) as f:
+            line_cnt = sum(1 for _ in f)
+        return line_cnt
+
+    def __len__(self):
+        return self.samples_cnt
+
+    def __getitem__(self, idx):
+        pass
+
+if __name__ == '__main__':
+    da = LibSvmDataset("/tmp/pycharm_project_dbreg/resources/dataset/frappe/train.libsvm", 10)
+
+    print(len(da))
