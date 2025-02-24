@@ -47,7 +47,7 @@ CACHE_SIZE = 10
 db_conn = ConnConfig(USER, HOST, PORT, DB_NAME)
 
 class CacheService:
-    def __init__(self, conn_cfg: ConnConfig, table: str, namespace: str, columns: List, batch_size: int, max_size: int = 10):
+    def __init__(self, conn_cfg: ConnConfig, table: str, namespace: str, columns: List, batch_size: int, max_size: int = 16):
         self.conn_cfg = conn_cfg
         self.table = table                  # dataset
         self.namespace = namespace          # train valid test
