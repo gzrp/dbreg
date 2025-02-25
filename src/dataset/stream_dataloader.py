@@ -22,7 +22,6 @@ import threading
 import time
 import requests
 import numpy as np
-from tomlkit import table
 
 from common import get_logger
 
@@ -51,9 +50,9 @@ class StreamDataloader:
                     logger.info("[StreamingDataLoader] eos...")
                     self.data_queue.put({self.eos_signal: True})
                 else:
-                    id_npy = np.asarray(batch['id'])
-                    value_npy = np.asarray(batch['value'])
-                    y_npy = np.asarray(batch['y'])
+                    id_npy = np.asarray(batch['id'], dtype=np.int32)
+                    value_npy = np.asarray(batch['value'], dtype=np.float32)
+                    y_npy = np.asarray(batch['y'], dtype=np.int32)
 
                     data_npy = {'id': id_npy, 'value': value_npy, 'y': y_npy}
                     self.data_queue.put(data_npy)
@@ -65,7 +64,7 @@ class StreamDataloader:
         return self
 
     def __next__(self):
-        logger.info("next-spendtime:%f" % (time.time() - self.last_fetch_time))
+        # logger.info("next-spendtime:%f" % (time.time() - self.last_fetch_time))
         self.last_fetch_time = time.time()
         if not self.thread.is_alive():
             logger.error("stream-dataloader thread is dead")

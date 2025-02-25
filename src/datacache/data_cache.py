@@ -105,6 +105,14 @@ class CacheService:
             feat_id.append(sample['id'])
             feat_value.append(sample['value'])
             y.append(sample['y'])
+
+        # 如果不够 batch size, 则使用最后一个进行填充
+        pad_size = self.batch_size - sample_lines
+        for i in range(pad_size):
+            feat_id.append(feat_id[-1])
+            feat_value.append(feat_value[-1])
+            y.append(y[-1])
+
         return {'id': feat_id, 'value': feat_value, 'y': y}
 
     @staticmethod

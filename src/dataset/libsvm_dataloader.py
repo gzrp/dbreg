@@ -76,14 +76,11 @@ class LibSvmDataset(Dataset):
                 'value': self.feat_value[idx],
                 'y': self.y[idx]}
 
-def libsvm_dataloader(file_dir, fields, batch_size, collect_type=None, workers=1):
+def libsvm_dataloader(file_dir, fields, batch_size, workers=1):
     train_path = os.path.join(file_dir, 'train.libsvm')
     valid_path = os.path.join(file_dir, 'valid.libsvm')
     test_path = os.path.join(file_dir, 'test.libsvm')
-
-    collate_fn = None
-    if collect_type == 'numpy':
-        collate_fn = numpy_collate_fn
+    collate_fn = numpy_collate_fn
 
     train_loader = DataLoader(LibSvmDataset(train_path, fields), batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=workers)
     valid_loader = DataLoader(LibSvmDataset(valid_path, fields), batch_size=batch_size, shuffle=False, collate_fn=collate_fn, num_workers=workers)
