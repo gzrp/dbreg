@@ -50,7 +50,7 @@ class StreamDataloader:
                     logger.info("[StreamingDataLoader] eos...")
                     self.data_queue.put({self.eos_signal: True})
                 else:
-                    id_npy = np.asarray(batch['id'], dtype=np.int32)
+                    id_npy = np.asarray(batch['id'], dtype=np.float32)
                     value_npy = np.asarray(batch['value'], dtype=np.float32)
                     y_npy = np.asarray(batch['y'], dtype=np.int32)
 
