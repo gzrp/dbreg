@@ -173,10 +173,7 @@ class TrainerBuilder(BaseBuilder):
         if "name" not in mdict:
             raise ValueError("name is not in mdict")
 
-        # from .model import create_model
-        # from .model.moder import create_model
         from .model.moder import create_model
-        # from .model.moder import create_model
         m = create_model(mdict)
         self.trainer.__mdict = mdict
         self.trainer.model = m

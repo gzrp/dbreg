@@ -69,7 +69,7 @@ class CacheService:
                     self.queue.put(batch)
                     logger.info(f"data is fetched, queue_size={self.queue.qsize()}, time_usg={time_usg}")
                     # block until a free slot is available
-                    time.sleep(0.1)
+                    time.sleep(0.001)
                 except psycopg2.OperationalError:
                     logger.exception("database connection failure, trying to reconnect...")
                     time.sleep(5)  # wait before trying to establish a new connection

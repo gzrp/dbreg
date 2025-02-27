@@ -32,6 +32,7 @@ singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
 class MLP(model.Model):
     def __init__(self, in_features=10, hidden_features=100, out_features=10, bias=True):
         super(MLP, self).__init__()
+        self.reg = None
         self.dimension = 2
         self.in_features = in_features
         self.hidden_features = hidden_features
@@ -50,13 +51,13 @@ class MLP(model.Model):
     def train_one_batch(self, x, y, dist_option, spars):
         out = self.forward(x)
         loss = self.softmax_cross_entropy(out, y)
-        # if reg_cfg is not None:
-        #     reg_name = reg_cfg.name
-        #     if reg_name == 'L2':
-        #         from .reg_loss import l2_loss_for_model
-        #         alpha = reg_cfg.alpha
-        #         reg_loss = l2_loss_for_model(self, alpha)
-        #         loss = autograd.add(loss, reg_loss)
+        if self.reg is not None:
+            name = self.reg.get("name")
+            if name == "L2":
+                alpha = self.reg.get("alpha")
+                from .reg_loss import l2_loss_for_model
+                reg_loss = l2_loss_for_model(self, alpha)
+                loss = autograd.add(loss, reg_loss)
 
         if dist_option == 'plain':
             self.optimizer(loss)
@@ -76,6 +77,9 @@ class MLP(model.Model):
 
     def set_optimizer(self, optimizer):
         self.optimizer = optimizer
+
+    def set_reg(self, rdict):
+        self.reg = rdict
 
 # mdict{"name": "mlp", "in_features":10, "out_features":2, "hidden_features":16, "bias": true}
 def create_mlp(mdict: Dict[str, Any]):
@@ -117,7 +121,18 @@ def create_mlp(mdict: Dict[str, Any]):
     if not isinstance(bias, bool):
        raise ValueError("mlp: bias is not a boolean")
 
+    rdict = mdict.get("reg")
+    if rdict is not None:
+        name = rdict.get("name")
+        if name is None:
+            raise ValueError("mlp: reg is not defined")
+
+        alpha = rdict.get("alpha")
+        if alpha is None:
+            raise ValueError("mlp: alpha is not defined")
+
     mlp = MLP(in_features=in_features, hidden_features=hidden_features, out_features=out_features, bias=bias)
+    mlp.set_reg(rdict)
     return mlp
 
 __all__ = ['MLP', 'create_mlp']
