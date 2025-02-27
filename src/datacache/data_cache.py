@@ -137,9 +137,9 @@ class CacheService:
 
 app = Sanic("cache-app")
 
-@app.get("/hello")
+@app.get("/health")
 async def hello(request):
-    return {"message": "hello cache-app."}
+    return json({"code": 200, "message": "the cache service is health."})
 
 
 @app.post("/start")

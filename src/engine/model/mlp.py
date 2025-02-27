@@ -17,6 +17,7 @@
 # under the License.
 #
 
+from typing import Dict, Any
 import numpy as np
 from singa import model
 from singa import  tensor
@@ -29,15 +30,15 @@ singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
 
 
 class MLP(model.Model):
-    def __init__(self, in_features=10, perceptron_size=100, num_classes=10):
+    def __init__(self, in_features=10, hidden_features=100, out_features=10, bias=True):
         super(MLP, self).__init__()
         self.dimension = 2
         self.in_features = in_features
-        self.perceptron_size = perceptron_size
-        self.num_classes = num_classes
+        self.hidden_features = hidden_features
+        self.num_classes = out_features
         self.relu = layer.ReLU()
-        self.linear1 = layer.Linear(self.in_features, self.perceptron_size, bias=True)
-        self.linear2 = layer.Linear(self.perceptron_size, self.num_classes, bias=True)
+        self.linear1 = layer.Linear(self.in_features, self.hidden_features, bias=bias)
+        self.linear2 = layer.Linear(self.hidden_features, self.num_classes, bias=bias)
         self.softmax_cross_entropy = layer.SoftMaxCrossEntropy()
 
     def forward(self, inputs):
@@ -46,16 +47,16 @@ class MLP(model.Model):
         y = self.linear2(y)
         return y
 
-    def train_one_batch(self, x, y, reg_cfg, dist_option, spars):
+    def train_one_batch(self, x, y, dist_option, spars):
         out = self.forward(x)
         loss = self.softmax_cross_entropy(out, y)
-        if reg_cfg is not None:
-            reg_name = reg_cfg.name
-            if reg_name == 'L2':
-                from .reg_loss import l2_loss_for_model
-                alpha = reg_cfg.alpha
-                reg_loss = l2_loss_for_model(self, alpha)
-                loss = autograd.add(loss, reg_loss)
+        # if reg_cfg is not None:
+        #     reg_name = reg_cfg.name
+        #     if reg_name == 'L2':
+        #         from .reg_loss import l2_loss_for_model
+        #         alpha = reg_cfg.alpha
+        #         reg_loss = l2_loss_for_model(self, alpha)
+        #         loss = autograd.add(loss, reg_loss)
 
         if dist_option == 'plain':
             self.optimizer(loss)
@@ -76,3 +77,50 @@ class MLP(model.Model):
     def set_optimizer(self, optimizer):
         self.optimizer = optimizer
 
+# mdict{"name": "mlp", "in_features":10, "out_features":2, "hidden_features":16, "bias": true}
+def create_mlp(mdict: Dict[str, Any]):
+    in_features = mdict.get("in_features")
+    if in_features is None:
+        raise ValueError("mlp: in_features is not defined")
+
+    if isinstance(in_features, int):
+        if in_features <= 0:
+            raise ValueError("mlp: in_features must be greater than 0")
+    else:
+        raise ValueError("mlp: in_features is not an integer")
+
+    out_features = mdict.get("out_features")
+    if out_features is None:
+        raise ValueError("mlp: out_features is not defined")
+
+    if isinstance(out_features, int):
+        if out_features <= 0:
+            raise ValueError("mlp: out_features must be greater than 0")
+    else:
+        raise ValueError("mlp: out_features is not an integer")
+
+    hidden_features = mdict.get("hidden_features")
+    if hidden_features is None:
+        raise ValueError("mlp: hidden_features is not defined")
+
+    if isinstance(hidden_features, int):
+        if hidden_features <= 0:
+            raise ValueError("mlp: hidden_features must be greater than 0")
+    else:
+        raise ValueError("mlp: hidden_features is not an integer")
+
+
+    bias = mdict.get("bias")
+    if bias is None:
+        raise ValueError("mlp: bias is not defined")
+
+    if not isinstance(bias, bool):
+       raise ValueError("mlp: bias is not a boolean")
+
+    mlp = MLP(in_features=in_features, hidden_features=hidden_features, out_features=out_features, bias=bias)
+    return mlp
+
+__all__ = ['MLP', 'create_mlp']
+
+if __name__ == '__main__':
+    create_mlp({'in_features': 10, 'hidden_features': 10, 'out_features': 10, 'bias': True})

@@ -18,25 +18,25 @@ class MLP(model.Model):
         self.in_features = in_features
         self.perceptron_size = perceptron_size
         self.num_classes = num_classes
-        self.relu1 = layer.Sigmoid()
-        self.relu2 = layer.Sigmoid()
-        self.relu3 = layer.Sigmoid()
-        self.softmax = layer.SoftMax()
+        self.relu1 = layer.ReLU()
+        # self.relu2 = layer.Sigmoid()
+        # self.relu3 = layer.Sigmoid()
+        # self.softmax = layer.SoftMax()
         self.linear1 = layer.Linear(self.in_features, self.perceptron_size, bias=True)
-        self.linear2 = layer.Linear(self.perceptron_size, 2 * self.perceptron_size, bias=True)
-        self.linear3 = layer.Linear(2 * self.perceptron_size, self.perceptron_size, bias=True)
-        self.linear4 = layer.Linear(self.perceptron_size, self.num_classes, bias=True)
+        self.linear2 = layer.Linear(self.perceptron_size, 2, bias=True)
+        # self.linear3 = layer.Linear(2 * self.perceptron_size, self.perceptron_size, bias=True)
+        # self.linear4 = layer.Linear(self.perceptron_size, self.num_classes, bias=True)
         self.softmax_cross_entropy = layer.SoftMaxCrossEntropy()
 
     def forward(self, inputs):
         y = self.linear1(inputs)
         y = self.relu1(y)
         y = self.linear2(y)
-        y = self.relu2(y)
-        y = self.linear3(y)
-        y = self.relu3(y)
-        y = self.linear4(y)
-        y = self.softmax(y)
+        # y = self.relu2(y)
+        # y = self.linear3(y)
+        # y = self.relu3(y)
+        # y = self.linear4(y)
+        # y = self.softmax(y)
         return y
 
     def train_one_batch(self, x, y, dist_option, spars):
@@ -72,8 +72,8 @@ def accuracy(pred, target):
 
 if __name__ == '__main__':
 
-    sgd = opt.SGD(lr=0.01, momentum=0.9, weight_decay=1e-5, dtype=singa_dtype["float32"])
-    model = MLP(in_features=10, perceptron_size=128, num_classes=2)
+    sgd = opt.SGD(lr=0.01, momentum=0.9, weight_decay=0.00001, dtype=singa_dtype["float32"])
+    model = MLP(in_features=10, perceptron_size=16, num_classes=2)
     model.set_optimizer(sgd)
 
     dev = device.get_default_device()
