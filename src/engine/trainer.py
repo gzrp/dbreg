@@ -41,6 +41,7 @@ class Trainer:
         self.__ddict = None
         self.__odict = None
         self.__mdict = None
+        self.__vdict = None
         self.tid = None
         self.name = None
         self.opt = None
@@ -49,6 +50,7 @@ class Trainer:
         self.acc_func = None
 
         self.batch_size = None
+        self.val_batch_size = None
         self.dev = None
         self.seed = None
         self.max_epoch = None
@@ -103,6 +105,10 @@ class BaseBuilder(ABC):
 
     @abstractmethod
     def build_train_dataloader(self, ddict: Dict[str, Any]):
+        pass
+
+    @abstractmethod
+    def build_val_dataloader(self, vdict: Dict[str, Any]):
         pass
 
     @abstractmethod
@@ -211,6 +217,31 @@ class TrainerBuilder(BaseBuilder):
         self.trainer.max_epoch = max_epoch
         return self
 
+    def build_val_dataloader(self, vdict: Dict[str, Any]):
+        if vdict is None:
+            raise ValueError("ddict is None")
+
+        if "type" not in vdict:
+            raise ValueError("type is not in vdict")
+
+        if "batch_size" not in vdict:
+            raise ValueError("batch_size is not in vdict")
+
+        batch_size = vdict.get("batch_size")
+        if not isinstance(batch_size, int):
+            raise ValueError("batch_size is not int")
+
+        if batch_size <= 0:
+            raise ValueError("batch_size is not positive")
+
+        self.trainer.val_batch_size = batch_size
+
+        from .data.loader import create_loader
+        v = create_loader(vdict)
+        self.trainer.__vdict = vdict
+        self.trainer.val_dataloader = v
+        return self
+
     def build_acc_func(self, f):
         if f is not None:
             self.trainer.acc_func = f
@@ -251,6 +282,7 @@ if __name__ == '__main__':
     mdict = {"name": "mlp", "in_features":10, "out_features":2, "hidden_features":16, "bias": True}
     odict = {"name": "sgd", "lr":0.01, "momentum":0.9, "weight_decay":0.00001, "precision": "float32"}
     ddict = {"svc_url": "http://192.168.56.20:8094", "table_name": "frappe_train", "namespace": "train", "columns": ["label", "col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10"], "batch_size": 16}
+    vdict = {"svc_url": "http://192.168.56.20:8094", "table_name": "frappe_test", "namespace": "test", "columns": ["label", "col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10"], "batch_size": 16}
     tdict = {"device": "cpu", "seed": 0, "max_epoch": 30}
 
 
@@ -259,6 +291,7 @@ if __name__ == '__main__':
                .build_model(mdict)
                .build_optimizer(odict)
                .build_train_dataloader(ddict)
+               .build_val_dataloader(vdict)
                .build_train_config(tdict)
                .build())
 
