@@ -24,7 +24,9 @@ from typing import Any, Dict
 
 import numpy as np
 from singa import device, tensor
+from common import get_logger
 
+logger = get_logger("train", "/log")
 
 np_dtype = {"float16": np.float16, "float32": np.float32}
 singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
@@ -92,6 +94,8 @@ class Trainer:
                 # print(model.get_params())
             print("epoch[%d]: loss:[%.6f], acc:[%d/%d = %.2f %%]" % (
                 epoch, train_loss, train_correct, total, 100.0 * train_correct / total))
+            logger.info("epoch[%d]: loss:[%.6f], acc:[%d/%d = %.2f %%]" % (
+                epoch, train_loss, train_correct, total, 100.0 * train_correct / total))
 
 
 class BaseBuilder(ABC):
@@ -140,7 +144,7 @@ class TrainerBuilder(BaseBuilder):
         if "name" not in odict:
             raise ValueError("name is not in odict")
 
-        from .optimizer.opter import create_sgd
+        from optimizer.opter import create_sgd
         o = create_sgd(odict)
         self.trainer.__odict = odict
         self.trainer.opt = o
@@ -166,7 +170,7 @@ class TrainerBuilder(BaseBuilder):
 
         self.trainer.batch_size = batch_size
 
-        from .data.loader import create_loader
+        from data.loader import create_loader
         d = create_loader(ddict)
         self.trainer.__ddict = ddict
         self.trainer.train_dataloader = d
@@ -179,7 +183,8 @@ class TrainerBuilder(BaseBuilder):
         if "name" not in mdict:
             raise ValueError("name is not in mdict")
 
-        from .model.moder import create_model
+        from model.moder import create_model
+        # from .model.moder import create_model
         m = create_model(mdict)
         self.trainer.__mdict = mdict
         self.trainer.model = m
@@ -236,7 +241,7 @@ class TrainerBuilder(BaseBuilder):
 
         self.trainer.val_batch_size = batch_size
 
-        from .data.loader import create_loader
+        from data.loader import create_loader
         v = create_loader(vdict)
         self.trainer.__vdict = vdict
         self.trainer.val_dataloader = v
@@ -276,6 +281,8 @@ class TrainerBuilder(BaseBuilder):
             self.trainer.acc_func = accuracy
 
         return self.trainer
+
+__all__ = ["TrainerBuilder"]
 
 if __name__ == '__main__':
 
