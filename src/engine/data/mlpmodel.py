@@ -5,7 +5,7 @@ from singa import model, opt, device
 from singa import  tensor
 from singa import layer
 
-from dataset.stream_dataloader import StreamDataloader
+from stream_dataloader import StreamDataloader
 
 np_dtype = {"float16": np.float16, "float32": np.float32}
 singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}

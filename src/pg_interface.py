@@ -61,43 +61,41 @@ logger = get_logger("pg-interface", "log")
 def echo_python(msg: str):
     return orjson.dumps(msg).decode('utf-8')
 
+# select train_base('{"name": "mlp", "in_features":10, "out_features":2, "hidden_features":16, "bias": true}','{"name": "sgd", "lr":0.01, "momentum":0.9, "weight_decay":0.00001, "precision": "float32"}','{"type":"stream", "svc_url": "http://192.168.56.20:8094", "table_name": "frappe_train", "namespace": "train", "columns": ["label","col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10"], "batch_size": 16}','{"device": "cpu", "seed":0, "max_epoch":3}','{"type":"stream", "svc_url": "http://192.168.56.20:8094", "table_name": "frappe_test", "namespace": "test", "columns": ["label","col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10"], "batch_size": 16}')
 
 @exception_catcher
 def train(encoded_str: str):
+    print(encoded_str)
     params = json.loads(encoded_str)
     logger.info(params)
+    mdict = params.get("mdict")
+    if mdict is None:
+        raise ValueError("mdict is None")
+    odict = params.get("odict")
+    if odict is None:
+        raise ValueError("odict is None")
 
-    model_cfg = params.get("model_cfg")
-    data_cfg = params.get("data_cfg")
-    train_cfg = params.get("train_cfg")
-    reg_cfg = params.get("reg_cfg")
-    opt_cfg = params.get("opt_cfg")
-
-    reg_cfg["alpha"] = float(reg_cfg.get("alpha"))
-
-    opt_cfg["momentum"] = float(opt_cfg.get("momentum"))
-    opt_cfg["lr"] = float(opt_cfg.get("lr"))
-    opt_cfg["weight_decay"] = float(opt_cfg.get("weight_decay"))
-
-    logger.info(model_cfg)
-    logger.info(data_cfg)
-    logger.info(train_cfg)
-    logger.info(reg_cfg)
-    logger.info(opt_cfg)
-
-    args = {"model_cfg": model_cfg, "data_cfg": data_cfg, "train_cfg": train_cfg, "reg_cfg": reg_cfg,
-            "opt_cfg": opt_cfg}
-
-    # return orjson.dumps(args).decode('utf-8')
-    resp = requests.post('http://127.0.0.1:8000/train', json=args)
+    ddict = params.get("ddict")
+    if ddict is None:
+        raise ValueError("ddict is None")
+    tdict = params.get("tdict")
+    if tdict is None:
+        raise ValueError("tdict is None")
+    vdict = params.get("vdict")
+    if vdict is None:
+        raise ValueError("vdict is None")
+    args = {"mdict": mdict, "odict": odict, "ddict": ddict, "tdict": tdict,
+            "vdict": vdict}
+    logger.info(args)
+    resp = requests.post('http://127.0.0.1:8093/train', json=args)
     return orjson.dumps(resp.json()).decode('utf-8')
 
 
-@exception_catcher
-def train_result(encoded_str: str):
-    params = json.loads(encoded_str)
-    logger.info(params)
-    task_id = params.get("task_id")
-    resp = requests.get('http://127.0.0.1:8000/results/{task_id}'.format(task_id=task_id))
-    return orjson.dumps(resp.json()).decode('utf-8')
+# @exception_catcher
+# def train_result(encoded_str: str):
+#     params = json.loads(encoded_str)
+#     logger.info(params)
+#     task_id = params.get("task_id")
+#     resp = requests.get('http://127.0.0.1:8000/results/{task_id}'.format(task_id=task_id))
+#     return orjson.dumps(resp.json()).decode('utf-8')
 

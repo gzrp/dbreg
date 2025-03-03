@@ -45,8 +45,7 @@ async def train(request):
     tdict = json_request.get("tdict")
 
     builder = TrainerBuilder()
-    trainer = (builder.build_name("trainer1")
-               .build_model(mdict)
+    trainer = (builder.build_model(mdict)
                .build_optimizer(odict)
                .build_train_dataloader(ddict)
                .build_val_dataloader(vdict)
@@ -55,13 +54,27 @@ async def train(request):
 
     task_id = trainer.tid
 
+    logger.info("task_id: %s \n - ddict: %s \n - odict: %s \n - ddict: %s \n vdict: %s \n tdict: %s\n", task_id, ddict, odict, ddict, vdict, tdict)
+
     try:
-       trainer.train()
+       resp = trainer.train()
     except Exception as e:
+        logger.error(e)
         return json({"error": "the training task failed to submit, specifically because: " + str(e)}, status=500)
 
-
-    return json({"code": 200, "task_id": task_id, "message": "the training task has been submitted successfully! Please wait a few minutes to obtain the training records according to the task id."})
+    return json({"code": 200, "task_id": task_id, "result": resp})
+#
+# @app.get("/results/<task_id>")
+# async def result(request, task_id: str):
+#     try:
+#         ans = api.get_train_result(task_id)
+#         if ans is not None:
+#             ans_dict = ast.literal_eval(ans)
+#             return json({"code": 200, "task_id": task_id, "result": ans_dict})
+#         else:
+#             return json({"code": 200, "task_id": task_id, "result": "the training task has not yet completed, please try again later."})
+#     except Exception as e:
+#         return json({"task_id": task_id, "message": "failed to obtain training results. The reasons for the failure are as follows" + str(e)}, status=500)
 
 
 if __name__ == '__main__':

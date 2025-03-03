@@ -32,4 +32,6 @@ CREATE EXTENSION
 pg_extension=# \dx+ pg_extension
 pg_extension=# SELECT hello_pg_extension();
 hello_pg_extension
+
+select * from pg_available_extensions;
 ```

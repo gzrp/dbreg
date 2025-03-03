@@ -84,8 +84,9 @@ class StreamDataloader:
         self.stop_event.set()
         self.thread.join()
 
-# ddict{"svc_url": "http://192.168.56.20:8094", "table_name": "frappe_train", "namespace": "train", "columns": [col1,col2], "batch_size": 16}
+# ddict{"type":"stream", "svc_url": "http://192.168.56.20:8094", "table_name": "frappe_train", "namespace": "train", "columns": ["label","col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10"], "batch_size": 16}
 def create_stream_dataloader(ddict: Dict[str, Any]):
+    logger.info("ddict: %s", ddict)
     svc_url = ddict.get("svc_url")
     if svc_url is None:
         raise ValueError("stream: svc_url is not defined")

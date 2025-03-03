@@ -89,6 +89,7 @@ class CacheService:
         else:
             # reset last id
             self.last_id = -1
+            logger.info(f"table={self.table} data is fetched eos")
             return "eos", time.time() - begin_time
 
         batch = self._preprocess(rows)
@@ -144,6 +145,7 @@ async def hello(request):
 
 @app.post("/start")
 async def start_cache(request):
+    logger.info("start cache, request: %s", request.json)
     # Check if request is JSON
     if not request.json:
         logger.info("Expecting JSON payload")
@@ -174,11 +176,13 @@ async def get(request):
     table_name = request.args.get("table_name")
     # check if exist
     if not hasattr(app.ctx, f'{table_name}_{namespace}_cache'):
+        logger.info(f"{table_name}_{namespace}_cache not start yet")
         return json({"error": f"{table_name}_{namespace}_cache not start yet"}, status=404)
 
     batch_data = getattr(app.ctx, f'{table_name}_{namespace}_cache').get()
     # return
     if batch_data is None:
+        logger.info("error: No data available")
         return json({"error": "No data available"}, status=404)
     else:
         return json(batch_data)

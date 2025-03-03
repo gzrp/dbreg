@@ -23,15 +23,36 @@ use std::collections::HashMap;
 use pgrx::prelude::*;
 use serde_json::json;
 use serde_json::Value;
+use pgrx::Json;
 ::pgrx::pg_module_magic!();
 
 pub mod bindings;
 
 
-#[pg_extern]
-fn hello_pg_extension() -> &'static str {
-    "Hello, pg_extension111"
+#[pg_extern(name = "hello_pg_extension")]
+fn hello_pg_extension(j1: Json) -> String {
+
+    let json_data = serde_json::to_string(&j1).unwrap();
+    println!("{}", json_data);
+    json_data
+//     "Hello, pg_extension111"
 }
+
+#[cfg(feature = "python")]
+#[pg_extern(immutable, parallel_safe, name = "train_base")]
+fn train_base(mdict: Json, odict:Json, ddict:Json, tdict:Json, vdict:Json) -> String {
+
+
+    let args = json!({
+        "mdict": mdict,
+        "odict": odict,
+        "ddict": ddict,
+        "tdict": tdict,
+        "vdict": vdict
+    }).to_string();
+    crate::bindings::trainer::train(&args).to_string()
+}
+
 
 
 #[cfg(feature = "python")]

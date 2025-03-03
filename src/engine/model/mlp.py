@@ -131,6 +131,12 @@ def create_mlp(mdict: Dict[str, Any]):
         if alpha is None:
             raise ValueError("mlp: alpha is not defined")
 
+        if isinstance(alpha, str):
+            alpha = float(alpha)
+
+        if not isinstance(alpha, float):
+            raise ValueError("mlp: alpha is not a float")
+
     mlp = MLP(in_features=in_features, hidden_features=hidden_features, out_features=out_features, bias=bias)
     mlp.set_reg(rdict)
     return mlp

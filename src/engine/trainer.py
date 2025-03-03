@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-
+import logging
 import uuid
 import time
 from abc import ABC, abstractmethod
@@ -24,9 +24,10 @@ from typing import Any, Dict
 
 import numpy as np
 from singa import device, tensor
+from torch.distributed.elastic.events import record
+
 from common import get_logger
 
-logger = get_logger("train", "/log")
 
 np_dtype = {"float16": np.float16, "float32": np.float32}
 singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
@@ -49,6 +50,7 @@ class Trainer:
         self.opt = None
         self.model = None
         self.train_dataloader = None
+        self.val_dataloader = None
         self.acc_func = None
 
         self.batch_size = None
@@ -59,26 +61,26 @@ class Trainer:
 
 
     def train(self):
-
+        logger = get_logger("train", "/log")
+        res = {}
         # 为模型设置优化器
         self.model.set_optimizer(self.opt)
-
         # 设置随机种子
         self.dev.SetRandSeed(self.seed)
         np.random.seed(self.seed)
-
         # 训练
+        train_records = []
+        test_records = []
         for epoch in range(self.max_epoch):
             start_time = time.time()
             # Training phase
             train_correct = np.zeros(shape=[1], dtype=np.float32)
-            # test_correct = np.zeros(shape=[1], dtype=np.float32)
+            test_correct = np.zeros(shape=[1], dtype=np.float32)
             train_loss = np.zeros(shape=[1], dtype=np.float32)
 
             # 训练模式
             self.model.train()
             total = 0
-
             for idx, batch in enumerate(self.train_dataloader, start=1):
                 x = batch['id']
                 y = batch['y']
@@ -91,12 +93,33 @@ class Trainer:
                 train_loss += tensor.to_numpy(loss)[0]
                 train_correct += self.acc_func(tensor.to_numpy(out), y)
                 total += y.shape[0]
-                # print(model.get_params())
-            print("epoch[%d]: loss:[%.6f], acc:[%d/%d = %.2f %%]" % (
-                epoch, train_loss, train_correct, total, 100.0 * train_correct / total))
-            logger.info("epoch[%d]: loss:[%.6f], acc:[%d/%d = %.2f %%]" % (
-                epoch, train_loss, train_correct, total, 100.0 * train_correct / total))
+            train_record = "epoch-%d: loss: %.6f, acc:%d/%d=%.2f%%" % (epoch, train_loss, train_correct, total, 100.0 * train_correct / total)
+            train_records.append({"epoch": epoch, "loss": '%.6f' % train_loss, "acc": '%.2f%%' % (100.0 * train_correct / total)})
+            logger.info(f"task_id: {self.tid} - train - {train_record}")
 
+            # 验证模式
+            self.model.eval()
+            eval_total = 0
+            for idx, batch in enumerate(self.val_dataloader, start=1):
+                x = batch['id']
+                y = batch['y']
+                tx = tensor.Tensor(x.shape, self.dev, singa_dtype['float32'])
+                ty = tensor.Tensor((y.shape[0],), self.dev, tensor.int32)
+
+                tx.copy_from_numpy(x)
+                ty.copy_from_numpy(y)
+
+                out_test = self.model(tx)
+                test_correct += self.acc_func(tensor.to_numpy(out_test), y)
+                eval_total += y.shape[0]
+
+            test_record = "epoch-%d: acc:%d/%d=%.2f%%" % (epoch, test_correct, eval_total, 100.0 * test_correct / eval_total)
+            test_records.append({"epoch": epoch, "acc": '%.2f%%' % (100.0 * test_correct / eval_total)})
+            logger.info(f"task_id: {self.tid} - test - {test_record}")
+        res["train_records"] = train_records
+        res["test_records"] = test_records
+        logger.info(f"task_id: {self.tid}, result: {res}")
+        return res
 
 class BaseBuilder(ABC):
     @abstractmethod
@@ -128,14 +151,6 @@ class TrainerBuilder(BaseBuilder):
     def __init__(self):
         self.trainer = Trainer()
         self.trainer.tid = uuid.uuid1().hex
-
-    def build_name(self, name: str):
-        if None is name:
-            self.trainer.name= "default"
-        else:
-            self.trainer.name = name
-
-        return self
 
     def build_optimizer(self, odict: Dict[str, Any]):
         if odict is None:
@@ -190,6 +205,7 @@ class TrainerBuilder(BaseBuilder):
         self.trainer.model = m
         return self
 
+    # {"device": "cpu", "seed":0, "max_epoch":3}
     def build_train_config(self, tdict: Dict[str, Any]):
         dev = tdict.get("device")
         if dev is None:
