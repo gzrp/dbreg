@@ -48,14 +48,14 @@ class StreamDataloader:
                 batch = resp.json()
                 if batch == self.eos_signal:
                     logger.info("[StreamingDataLoader] eos...")
-                    self.data_queue.put({self.eos_signal: True})
+                    self.data_queue.put({self.eos_signal: True}, block=True)
                 else:
                     id_npy = np.asarray(batch['id'], dtype=np.float32)
                     value_npy = np.asarray(batch['value'], dtype=np.float32)
                     y_npy = np.asarray(batch['y'], dtype=np.int32)
 
                     data_npy = {'id': id_npy, 'value': value_npy, 'y': y_npy}
-                    self.data_queue.put(data_npy)
+                    self.data_queue.put(data_npy, block=True)
             else:
                 logger.error(resp.json())
                 time.sleep(5)

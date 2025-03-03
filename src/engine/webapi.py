@@ -45,11 +45,12 @@ async def train(request):
     tdict = json_request.get("tdict")
 
     builder = TrainerBuilder()
-    trainer = (builder.build_model(mdict)
+    trainer = (builder.build_base_config(tdict)
+               .build_model(mdict)
                .build_optimizer(odict)
                .build_train_dataloader(ddict)
                .build_val_dataloader(vdict)
-               .build_train_config(tdict)
+               .build_base_config(tdict)
                .build())
 
     task_id = trainer.tid

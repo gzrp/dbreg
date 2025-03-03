@@ -66,10 +66,10 @@ class CacheService:
             while True:
                 try:
                     batch, time_usg = self._fetch_and_preprocess(conn)
-                    self.queue.put(batch)
+                    self.queue.put(batch, block=True)
                     logger.info(f"table={self.table} data is fetched, queue_size={self.queue.qsize()}, time_usg={time_usg}")
                     # block until a free slot is available
-                    time.sleep(0.001)
+                    time.sleep(0.002)
                 except psycopg2.OperationalError:
                     logger.exception("database connection failure, trying to reconnect...")
                     time.sleep(5)  # wait before trying to establish a new connection
@@ -91,6 +91,8 @@ class CacheService:
             self.last_id = -1
             logger.info(f"table={self.table} data is fetched eos")
             return "eos", time.time() - begin_time
+
+        # print("last_id", self.table, self.last_id)
 
         batch = self._preprocess(rows)
         return batch, time.time() - begin_time
@@ -127,7 +129,7 @@ class CacheService:
         return sample
 
     def get(self):
-        return self.queue.get()
+        return self.queue.get(block=True)
 
     def empty(self):
         return self.queue.empty()

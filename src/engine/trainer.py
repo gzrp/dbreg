@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-import logging
+
 import uuid
 import time
 from abc import ABC, abstractmethod
@@ -24,10 +24,10 @@ from typing import Any, Dict
 
 import numpy as np
 from singa import device, tensor
-from torch.distributed.elastic.events import record
 
 from common import get_logger
 
+logger = get_logger("train", "/log")
 
 np_dtype = {"float16": np.float16, "float32": np.float32}
 singa_dtype = {"float16": tensor.float16, "float32": tensor.float32}
@@ -61,12 +61,11 @@ class Trainer:
 
 
     def train(self):
-        logger = get_logger("train", "/log")
+
         res = {}
         # 为模型设置优化器
         self.model.set_optimizer(self.opt)
         # 设置随机种子
-        self.dev.SetRandSeed(self.seed)
         np.random.seed(self.seed)
         # 训练
         train_records = []
@@ -75,7 +74,6 @@ class Trainer:
             start_time = time.time()
             # Training phase
             train_correct = np.zeros(shape=[1], dtype=np.float32)
-            test_correct = np.zeros(shape=[1], dtype=np.float32)
             train_loss = np.zeros(shape=[1], dtype=np.float32)
 
             # 训练模式
@@ -84,6 +82,7 @@ class Trainer:
             for idx, batch in enumerate(self.train_dataloader, start=1):
                 x = batch['id']
                 y = batch['y']
+                # print(x)
                 tx = tensor.Tensor(x.shape, self.dev, singa_dtype['float32'])
                 ty = tensor.Tensor((y.shape[0],), self.dev, tensor.int32)
 
@@ -99,10 +98,13 @@ class Trainer:
 
             # 验证模式
             self.model.eval()
+            test_correct = np.zeros(shape=[1], dtype=np.float32)
             eval_total = 0
+            print("-------------------------------------------")
             for idx, batch in enumerate(self.val_dataloader, start=1):
                 x = batch['id']
                 y = batch['y']
+                # print(x)
                 tx = tensor.Tensor(x.shape, self.dev, singa_dtype['float32'])
                 ty = tensor.Tensor((y.shape[0],), self.dev, tensor.int32)
 
@@ -139,7 +141,7 @@ class BaseBuilder(ABC):
         pass
 
     @abstractmethod
-    def build_train_config(self, tdict: Dict[str, Any]):
+    def build_base_config(self, tdict: Dict[str, Any]):
         pass
 
     @abstractmethod
@@ -192,6 +194,7 @@ class TrainerBuilder(BaseBuilder):
         return self
 
     def build_model(self, mdict: Dict[str, Any]):
+
         if mdict is None:
             raise ValueError("mdict is None")
 
@@ -206,7 +209,7 @@ class TrainerBuilder(BaseBuilder):
         return self
 
     # {"device": "cpu", "seed":0, "max_epoch":3}
-    def build_train_config(self, tdict: Dict[str, Any]):
+    def build_base_config(self, tdict: Dict[str, Any]):
         dev = tdict.get("device")
         if dev is None:
             raise ValueError("device is not in tdict")
@@ -224,6 +227,8 @@ class TrainerBuilder(BaseBuilder):
             raise ValueError("seed is not an integer")
 
         self.trainer.seed = seed
+
+        self.trainer.dev.SetRandSeed(seed)
 
         max_epoch = tdict.get("max_epoch")
         if max_epoch is None:
