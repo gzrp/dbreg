@@ -63,18 +63,6 @@ async def train(request):
         return json({"error": "the training task failed to submit, specifically because: " + str(e)}, status=500)
 
     return json({"code": 200, "task_id": task_id, "result": resp})
-#
-# @app.get("/results/<task_id>")
-# async def result(request, task_id: str):
-#     try:
-#         ans = api.get_train_result(task_id)
-#         if ans is not None:
-#             ans_dict = ast.literal_eval(ans)
-#             return json({"code": 200, "task_id": task_id, "result": ans_dict})
-#         else:
-#             return json({"code": 200, "task_id": task_id, "result": "the training task has not yet completed, please try again later."})
-#     except Exception as e:
-#         return json({"task_id": task_id, "message": "failed to obtain training results. The reasons for the failure are as follows" + str(e)}, status=500)
 
 
 if __name__ == '__main__':
