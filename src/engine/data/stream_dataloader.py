@@ -48,13 +48,15 @@ class StreamDataloader:
                 batch = resp.json()
                 if batch == self.eos_signal:
                     logger.info("[StreamingDataLoader] eos...")
-                    self.data_queue.put({self.eos_signal: True}, block=True)
+                    self.data_queue.put({self.eos_signal: True, "last_id": -1}, block=True)
                 else:
                     id_npy = np.asarray(batch['id'], dtype=np.float32)
                     value_npy = np.asarray(batch['value'], dtype=np.float32)
                     y_npy = np.asarray(batch['y'], dtype=np.int32)
 
-                    data_npy = {'id': id_npy, 'value': value_npy, 'y': y_npy}
+                    last_id = batch['last_id']
+
+                    data_npy = {'id': id_npy, 'value': value_npy, 'y': y_npy, "last_id": last_id}
                     self.data_queue.put(data_npy, block=True)
             else:
                 logger.error(resp.json())
@@ -75,14 +77,21 @@ class StreamDataloader:
                 raise StopIteration
             else:
                 return data
-
+            # return data
 
     def __len__(self):
         return self.data_queue.qsize()
 
     def stop(self):
         self.stop_event.set()
-        self.thread.join()
+        time.sleep(0.5)
+        # self.thread.join()
+        self._remove_cache()
+
+    def _remove_cache(self):
+        resp = requests.post(f"{self.svc_url}/remove", params={'table_name': self.table, 'namespace': self.namespace})
+        if resp.status_code != 200:
+            logger.error(resp.json())
 
 # ddict{"type":"stream", "svc_url": "http://192.168.56.20:8094", "table_name": "frappe_train", "namespace": "train", "columns": ["label","col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10"], "batch_size": 16}
 def create_stream_dataloader(ddict: Dict[str, Any]):
@@ -128,7 +137,7 @@ def create_stream_dataloader(ddict: Dict[str, Any]):
     if resp.status_code != 200:
         raise ValueError("stream: cannot start stream")
 
-    time.sleep(0.2)
+    time.sleep(0.5)
 
     loader = StreamDataloader(svc_url, table_name, namespace)
     return loader

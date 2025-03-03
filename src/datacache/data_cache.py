@@ -69,7 +69,7 @@ class CacheService:
                     self.queue.put(batch, block=True)
                     logger.info(f"table={self.table} data is fetched, queue_size={self.queue.qsize()}, time_usg={time_usg}")
                     # block until a free slot is available
-                    time.sleep(0.002)
+                    time.sleep(0.01)
                 except psycopg2.OperationalError:
                     logger.exception("database connection failure, trying to reconnect...")
                     time.sleep(5)  # wait before trying to establish a new connection
@@ -95,6 +95,7 @@ class CacheService:
         # print("last_id", self.table, self.last_id)
 
         batch = self._preprocess(rows)
+        batch["last_id"] = self.last_id
         return batch, time.time() - begin_time
 
     def _preprocess(self, rows: List[tuple]):
@@ -188,6 +189,18 @@ async def get(request):
         return json({"error": "No data available"}, status=404)
     else:
         return json(batch_data)
+
+
+@app.post("/remove")
+async def remove(request):
+    namespace = request.args.get("namespace")
+    table_name = request.args.get("table_name")
+    # check if exist
+    if hasattr(app.ctx, f'{table_name}_{namespace}_cache'):
+        delattr(app.ctx, f'{table_name}_{namespace}_cache')
+    return json({"code": 200, "message": "the cache service is removed successfully."}, status=200)
+
+
 
 
 if __name__ == "__main__":

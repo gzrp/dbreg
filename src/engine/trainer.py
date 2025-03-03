@@ -80,6 +80,8 @@ class Trainer:
             self.model.train()
             total = 0
             for idx, batch in enumerate(self.train_dataloader, start=1):
+                last_id = batch["last_id"]
+                # print(f"last_id:{last_id}")
                 x = batch['id']
                 y = batch['y']
                 # print(x)
@@ -102,6 +104,8 @@ class Trainer:
             eval_total = 0
             print("-------------------------------------------")
             for idx, batch in enumerate(self.val_dataloader, start=1):
+                last_id = batch["last_id"]
+                # print(f"last_id:{last_id}")
                 x = batch['id']
                 y = batch['y']
                 # print(x)
@@ -118,6 +122,10 @@ class Trainer:
             test_record = "epoch-%d: acc:%d/%d=%.2f%%" % (epoch, test_correct, eval_total, 100.0 * test_correct / eval_total)
             test_records.append({"epoch": epoch, "acc": '%.2f%%' % (100.0 * test_correct / eval_total)})
             logger.info(f"task_id: {self.tid} - test - {test_record}")
+
+        self.train_dataloader.stop()
+        self.val_dataloader.stop()
+
         res["train_records"] = train_records
         res["test_records"] = test_records
         logger.info(f"task_id: {self.tid}, result: {res}")
