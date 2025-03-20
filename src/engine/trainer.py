@@ -164,6 +164,7 @@ class TrainerBuilder(BaseBuilder):
         if "name" not in odict:
             raise ValueError("name is not in odict")
 
+        odict["precision"] = "float32"
         from optimizer.opter import create_sgd
         o = create_sgd(odict)
         self.trainer.__odict = odict
@@ -175,8 +176,10 @@ class TrainerBuilder(BaseBuilder):
         if ddict is None:
             raise ValueError("ddict is None")
 
-        if "type" not in ddict:
-            raise ValueError("type is not in ddict")
+        # if "type" not in ddict:
+        #     raise ValueError("type is not in ddict")
+        ddict['type'] = "stream"
+        ddict['svc_url'] = "http://192.168.56.20:8094"
 
         if "batch_size" not in ddict:
             raise ValueError("batch_size is not in ddict")
@@ -250,8 +253,8 @@ class TrainerBuilder(BaseBuilder):
         if vdict is None:
             raise ValueError("ddict is None")
 
-        if "type" not in vdict:
-            raise ValueError("type is not in vdict")
+        ddict['type'] = "stream"
+        ddict['svc_url'] = "http://192.168.56.20:8094"
 
         if "batch_size" not in vdict:
             raise ValueError("batch_size is not in vdict")

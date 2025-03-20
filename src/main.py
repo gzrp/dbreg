@@ -9,8 +9,7 @@ if __name__ == '__main__':
 
 
     builder = TrainerBuilder()
-    trainer = (builder.build_name("trainer1")
-               .build_model(mdict)
+    trainer = (builder.build_model(mdict)
                .build_optimizer(odict)
                .build_train_dataloader(ddict)
                .build_val_dataloader(vdict)

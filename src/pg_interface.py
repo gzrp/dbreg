@@ -75,12 +75,14 @@ def train(encoded_str: str):
     if odict is None:
         raise ValueError("odict is None")
 
-    ddict = params.get("ddict")
-    if ddict is None:
-        raise ValueError("ddict is None")
     tdict = params.get("tdict")
     if tdict is None:
         raise ValueError("tdict is None")
+
+    ddict = params.get("ddict")
+    if ddict is None:
+        raise ValueError("ddict is None")
+
     vdict = params.get("vdict")
     if vdict is None:
         raise ValueError("vdict is None")
