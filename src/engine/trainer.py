@@ -61,7 +61,6 @@ class Trainer:
 
 
     def train(self):
-
         res = {}
         # 为模型设置优化器
         self.model.set_optimizer(self.opt)
@@ -95,6 +94,7 @@ class Trainer:
                 train_correct += self.acc_func(tensor.to_numpy(out), y)
                 total += y.shape[0]
 
+            train_time = time.time() - start_time
             # 验证模式
             self.model.eval()
             test_correct = np.zeros(shape=[1], dtype=np.float32)
@@ -115,9 +115,10 @@ class Trainer:
                 test_correct += self.acc_func(tensor.to_numpy(out_test), y)
                 eval_total += y.shape[0]
 
-            record = "epoch-%d: loss=%.2f, train_acc=%d/%d=%.2f%%, test_acc=%d/%d=%.2f%%" % (epoch, train_loss, train_correct, total, 100.0 * train_correct / total, test_correct, eval_total, 100.0 * test_correct / eval_total)
+            val_time = time.time() - train_time
+            record = "epoch-%d: loss=%.2f, train_acc=%d/%d=%.2f%%, test_acc=%d/%d=%.2f%%, train_time=%.2fs, val_time=%.2fs" % (epoch, train_loss, train_correct, total, 100.0 * train_correct / total, test_correct, eval_total, 100.0 * test_correct / eval_total, train_time, val_time)
             logger.info(f"task_id: {self.tid} - {record}")
-            records.append({"epoch": epoch, "loss": '%.2f' % train_loss, "train_acc": '%.2f%%' % (100.0 * train_correct / total), "test_acc": '%.2f%%' % (100.0 * test_correct / eval_total)})
+            records.append({"epoch": epoch, "loss": '%.2f' % train_loss, "train_acc": '%.2f%%' % (100.0 * train_correct / total), "test_acc": '%.2f%%' % (100.0 * test_correct / eval_total), "train_time": '%.2fs' % train_time, "val_time": '%.2fs' % val_time})
 
         self.train_dataloader.stop()
         self.val_dataloader.stop()
@@ -253,8 +254,8 @@ class TrainerBuilder(BaseBuilder):
         if vdict is None:
             raise ValueError("ddict is None")
 
-        ddict['type'] = "stream"
-        ddict['svc_url'] = "http://192.168.56.20:8094"
+        vdict['type'] = "stream"
+        vdict['svc_url'] = "http://192.168.56.20:8094"
 
         if "batch_size" not in vdict:
             raise ValueError("batch_size is not in vdict")

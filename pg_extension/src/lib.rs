@@ -22,7 +22,6 @@
 use std::collections::HashMap;
 use pgrx::prelude::*;
 use serde_json::json;
-use serde_json::Value;
 use pgrx::Json;
 ::pgrx::pg_module_magic!();
 
@@ -48,8 +47,9 @@ fn echo_python(message: String) -> String {
 }
 
 #[cfg(feature = "python")]
-#[pg_extern(immutable, parallel_safe, name = "train_base")]
+#[pg_extern(immutable, parallel_safe, name = "train")]
 fn train(mdict: Json, odict:Json, tdict:Json, ddict:Json, vdict:Json) -> String {
+    let overall_start_time = Instant::now();
     let args = json!({
         "mdict": mdict,
         "odict": odict,
@@ -57,7 +57,14 @@ fn train(mdict: Json, odict:Json, tdict:Json, ddict:Json, vdict:Json) -> String 
         "ddict": ddict,
         "vdict": vdict
     }).to_string();
-    crate::bindings::trainer::train(&args).to_string()
+    let ans_json = crate::bindings::trainer::train(&args)
+
+    let overall_end_time = Instant::now();
+    let overall_elapsed_time = overall_end_time.duration_since(overall_start_time);
+    let overall_elapsed_seconds = overall_elapsed_time.as_secs_f64();
+
+    ans_json.insert("total_time", overall_elapsed_seconds.to_string())
+    ans_json.to_string()
 }
 
 

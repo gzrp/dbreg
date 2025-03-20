@@ -16,6 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+import time
 
 from sanic import Sanic
 from sanic.exceptions import InvalidUsage
@@ -33,6 +34,7 @@ async def hello(request):
 
 @app.post("/train")
 async def train(request):
+    train_start_time = time.time()
     # Check if request is JSON
     if not request.json:
         logger.info("Expecting JSON payload")
@@ -61,8 +63,8 @@ async def train(request):
     except Exception as e:
         logger.error(e)
         return json({"error": "the training task failed to submit, specifically because: " + str(e)}, status=500)
-
-    return json({"code": 200, "task_id": task_id, "result": resp})
+    train_end_time = time.time()
+    return json({"code": 200, "task_id": task_id, "trained_time": train_end_time - train_start_time,"result": resp})
 
 
 if __name__ == '__main__':
