@@ -115,7 +115,7 @@ class Trainer:
                 test_correct += self.acc_func(tensor.to_numpy(out_test), y)
                 eval_total += y.shape[0]
 
-            val_time = time.time() - train_time
+            val_time = time.time() - train_time - start_time
             record = "epoch-%d: loss=%.2f, train_acc=%d/%d=%.2f%%, test_acc=%d/%d=%.2f%%, train_time=%.2fs, val_time=%.2fs" % (epoch, train_loss, train_correct, total, 100.0 * train_correct / total, test_correct, eval_total, 100.0 * test_correct / eval_total, train_time, val_time)
             logger.info(f"task_id: {self.tid} - {record}")
             records.append({"epoch": epoch, "loss": '%.2f' % train_loss, "train_acc": '%.2f%%' % (100.0 * train_correct / total), "test_acc": '%.2f%%' % (100.0 * test_correct / eval_total), "train_time": '%.2fs' % train_time, "val_time": '%.2fs' % val_time})

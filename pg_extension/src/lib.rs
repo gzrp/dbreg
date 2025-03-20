@@ -23,6 +23,8 @@ use std::collections::HashMap;
 use pgrx::prelude::*;
 use serde_json::json;
 use pgrx::Json;
+use serde_json::Value;
+use std::time::{Instant};
 ::pgrx::pg_module_magic!();
 
 pub mod bindings;
@@ -57,13 +59,14 @@ fn train(mdict: Json, odict:Json, tdict:Json, ddict:Json, vdict:Json) -> String 
         "ddict": ddict,
         "vdict": vdict
     }).to_string();
-    let ans_json = crate::bindings::trainer::train(&args)
+    let mut ans_json = crate::bindings::trainer::train(&args);
 
     let overall_end_time = Instant::now();
     let overall_elapsed_time = overall_end_time.duration_since(overall_start_time);
     let overall_elapsed_seconds = overall_elapsed_time.as_secs_f64();
+    let formatted_time = format!("{:.2}s", overall_elapsed_seconds);
 
-    ans_json.insert("total_time", overall_elapsed_seconds.to_string())
+    ans_json.as_object_mut().unwrap().insert("time_usage".to_string(), Value::String(formatted_time.to_string()));
     ans_json.to_string()
 }
 

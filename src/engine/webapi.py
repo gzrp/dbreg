@@ -64,7 +64,7 @@ async def train(request):
         logger.error(e)
         return json({"error": "the training task failed to submit, specifically because: " + str(e)}, status=500)
     train_end_time = time.time()
-    return json({"code": 200, "task_id": task_id, "trained_time": train_end_time - train_start_time,"result": resp})
+    return json({"code": 200, "task_id": task_id, "train_total_time": "%.2fs" % (train_end_time - train_start_time), "result": resp})
 
 
 if __name__ == '__main__':

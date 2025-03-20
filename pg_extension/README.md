@@ -81,3 +81,41 @@ select train(
 	}',
 );
 ```
+
+
+```json
+{
+    "code": 200,
+    "task_id": "1748c724055e11f0be9169914616b394",
+    "train_total_time": "201.25s",
+    "result": {
+        "records": [
+            {
+                "epoch": 0,
+                "loss": "1903.75",
+                "train_acc": "66.53%",
+                "test_acc": "66.95%",
+                "train_time": "61.01s",
+                "val_time": "5.46s"
+            },
+            {
+                "epoch": 1,
+                "loss": "1867.47",
+                "train_acc": "66.54%",
+                "test_acc": "66.95%",
+                "train_time": "57.82s",
+                "val_time": "5.47s"
+            },
+            {
+                "epoch": 2,
+                "loss": "1861.89",
+                "train_acc": "66.54%",
+                "test_acc": "66.95%",
+                "train_time": "63.38s",
+                "val_time": "5.74s"
+            }
+        ]
+    },
+    "time_usage": "201.53s"
+}
+```
