@@ -47,7 +47,7 @@ CACHE_SIZE = 10
 db_conn = ConnConfig(USER, HOST, PORT, DB_NAME)
 
 class CacheService:
-    def __init__(self, conn_cfg: ConnConfig, table: str, namespace: str, columns: List, batch_size: int, max_size: int = 16):
+    def __init__(self, conn_cfg: ConnConfig, table: str, namespace: str, columns: List, batch_size: int, max_size: int = 128):
         self.conn_cfg = conn_cfg
         self.table = table                  # dataset
         self.namespace = namespace          # train valid test
@@ -69,7 +69,7 @@ class CacheService:
                     self.queue.put(batch, block=True)
                     logger.info(f"table={self.table} data is fetched, queue_size={self.queue.qsize()}, time_usg={time_usg}")
                     # block until a free slot is available
-                    time.sleep(0.01)
+                    time.sleep(0.001)
                 except psycopg2.OperationalError:
                     logger.exception("database connection failure, trying to reconnect...")
                     time.sleep(5)  # wait before trying to establish a new connection

@@ -26,6 +26,6 @@ def libsvm(df, fp):
 
 if __name__ == '__main__':
 
-    df = pd.read_csv(r'/tmp/pycharm_project_dbreg/resources/scripts/database/train.csv')
-    fp = r'/tmp/pycharm_project_dbreg/resources/scripts/database/train.libsvm'
+    df = pd.read_csv(r'/tmp/pycharm_project_dbreg/resources/dataset/frappe_csv/valid.csv')
+    fp = r'/tmp/pycharm_project_dbreg/resources/dataset/frappe_csv/valid.libsvm'
     libsvm(df, fp)

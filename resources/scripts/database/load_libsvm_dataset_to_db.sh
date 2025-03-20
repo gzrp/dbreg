@@ -59,9 +59,7 @@ for type in "${types[@]}"; do
                 printf " ";  # if its not the last field, print a space
             }
         }
-        if (NR < FNR) {
-          printf "\n";  # end of line
-        }
+        printf "\n";  # end of line
     }' "${DATASET_PATH}/${type}.libsvm" > "${DATASET_PATH}/${type}.csv"
 done
 

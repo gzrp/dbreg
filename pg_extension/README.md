@@ -29,9 +29,12 @@ cargo pgrx run
 # 4. DROP EXTENSION IF EXISTS pg_extension;
 pg_extension=# CREATE EXTENSION pg_extension;
 CREATE EXTENSION
-pg_extension=# \dx+ pg_extension
-pg_extension=# SELECT hello_pg_extension();
+pg_extension=# \dx+ pg_extension;
+pg_extension=# SELECT hello_pg_extension('{}');
 hello_pg_extension
 
 select * from pg_available_extensions;
+
+select train_base('{"name": "mlp", "in_features":10, "out_features":2, "hidden_features":100, "bias": true, "reg": {"name":"L2", "alpha": 1.0}}','{"name": "sgd", "lr":0.01, "momentum":0.9, "weight_decay":0.00001, "precision": "float32"}','{"type":"stream", "svc_url": "http://192.168.56.20:8094", "table_name": "frappe_train", "namespace": "train", "columns": ["label","col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10"], "batch_size": 64}','{"device": "cpu", "seed":0, "max_epoch":10}','{"type":"stream", "svc_url": "http://192.168.56.20:8094", "table_name": "frappe_test", "namespace": "test", "columns": ["label","col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10"], "batch_size": 64}');
+
 ```

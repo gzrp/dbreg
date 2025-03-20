@@ -50,12 +50,11 @@ async def train(request):
                .build_optimizer(odict)
                .build_train_dataloader(ddict)
                .build_val_dataloader(vdict)
-               .build_base_config(tdict)
                .build())
 
     task_id = trainer.tid
 
-    logger.info("task_id: %s \n - ddict: %s \n - odict: %s \n - ddict: %s \n vdict: %s \n tdict: %s\n", task_id, ddict, odict, ddict, vdict, tdict)
+    logger.info("task_id: %s \n - tdict: %s \n - mdict: %s \n - odict: %s \n - ddict: %s \n - vdict: %s\n", task_id, tdict, mdict, odict, ddict, vdict)
 
     try:
        resp = trainer.train()

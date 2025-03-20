@@ -56,7 +56,7 @@ class Trainer:
         self.batch_size = None
         self.val_batch_size = None
         self.dev = None
-        self.seed = None
+        self.seed = 0
         self.max_epoch = None
 
 
@@ -68,9 +68,9 @@ class Trainer:
         # 设置随机种子
         np.random.seed(self.seed)
         # 训练
-        train_records = []
-        test_records = []
+        records = []
         for epoch in range(self.max_epoch):
+            print("-"*50 + f"{epoch}" + "-"*50)
             start_time = time.time()
             # Training phase
             train_correct = np.zeros(shape=[1], dtype=np.float32)
@@ -80,7 +80,7 @@ class Trainer:
             self.model.train()
             total = 0
             for idx, batch in enumerate(self.train_dataloader, start=1):
-                last_id = batch["last_id"]
+                # last_id = batch["last_id"]
                 # print(f"last_id:{last_id}")
                 x = batch['id']
                 y = batch['y']
@@ -94,17 +94,13 @@ class Trainer:
                 train_loss += tensor.to_numpy(loss)[0]
                 train_correct += self.acc_func(tensor.to_numpy(out), y)
                 total += y.shape[0]
-            train_record = "epoch-%d: loss: %.6f, acc:%d/%d=%.2f%%" % (epoch, train_loss, train_correct, total, 100.0 * train_correct / total)
-            train_records.append({"epoch": epoch, "loss": '%.6f' % train_loss, "acc": '%.2f%%' % (100.0 * train_correct / total)})
-            logger.info(f"task_id: {self.tid} - train - {train_record}")
 
             # 验证模式
             self.model.eval()
             test_correct = np.zeros(shape=[1], dtype=np.float32)
             eval_total = 0
-            print("-------------------------------------------")
             for idx, batch in enumerate(self.val_dataloader, start=1):
-                last_id = batch["last_id"]
+                # last_id = batch["last_id"]
                 # print(f"last_id:{last_id}")
                 x = batch['id']
                 y = batch['y']
@@ -119,16 +115,15 @@ class Trainer:
                 test_correct += self.acc_func(tensor.to_numpy(out_test), y)
                 eval_total += y.shape[0]
 
-            test_record = "epoch-%d: acc:%d/%d=%.2f%%" % (epoch, test_correct, eval_total, 100.0 * test_correct / eval_total)
-            test_records.append({"epoch": epoch, "acc": '%.2f%%' % (100.0 * test_correct / eval_total)})
-            logger.info(f"task_id: {self.tid} - test - {test_record}")
+            record = "epoch-%d: loss=%.2f, train_acc=%d/%d=%.2f%%, test_acc=%d/%d=%.2f%%" % (epoch, train_loss, train_correct, total, 100.0 * train_correct / total, test_correct, eval_total, 100.0 * test_correct / eval_total)
+            logger.info(f"task_id: {self.tid} - {record}")
+            records.append({"epoch": epoch, "loss": '%.2f' % train_loss, "train_acc": '%.2f%%' % (100.0 * train_correct / total), "test_acc": '%.2f%%' % (100.0 * test_correct / eval_total)})
 
         self.train_dataloader.stop()
         self.val_dataloader.stop()
+        res["records"] = records
+        logger.info(f"{res}")
 
-        res["train_records"] = train_records
-        res["test_records"] = test_records
-        logger.info(f"task_id: {self.tid}, result: {res}")
         return res
 
 class BaseBuilder(ABC):

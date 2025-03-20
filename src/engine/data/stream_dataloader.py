@@ -36,7 +36,7 @@ class StreamDataloader:
         self.namespace = namespace
         self.eos_signal = "eos"
         self.last_fetch_time = 0
-        self.data_queue = queue.Queue(maxsize=10)
+        self.data_queue = queue.Queue(maxsize=64)
         self.stop_event = threading.Event()
         self.thread = threading.Thread(target=self._fetch_data, daemon=True)
         self.thread.start()
@@ -47,7 +47,7 @@ class StreamDataloader:
             if resp.status_code == 200:
                 batch = resp.json()
                 if batch == self.eos_signal:
-                    logger.info("[StreamingDataLoader] eos...")
+                    logger.info(f"[StreamingDataLoader] {self.table} eos...")
                     self.data_queue.put({self.eos_signal: True, "last_id": -1}, block=True)
                 else:
                     id_npy = np.asarray(batch['id'], dtype=np.float32)

@@ -37,15 +37,23 @@ class MLP(model.Model):
         self.in_features = in_features
         self.hidden_features = hidden_features
         self.num_classes = out_features
-        self.relu = layer.ReLU()
+        self.relu = layer.Sigmoid()
+        self.relu2 = layer.Sigmoid()
+        self.dropout1 = layer.Dropout()
+        self.dropout2 = layer.Dropout()
         self.linear1 = layer.Linear(self.in_features, self.hidden_features, bias=bias)
-        self.linear2 = layer.Linear(self.hidden_features, self.num_classes, bias=bias)
+        self.linear2 = layer.Linear(self.hidden_features, self.hidden_features, bias=bias)
+        self.linear3 = layer.Linear(self.hidden_features, self.num_classes, bias=bias)
         self.softmax_cross_entropy = layer.SoftMaxCrossEntropy()
 
     def forward(self, inputs):
         y = self.linear1(inputs)
         y = self.relu(y)
+        y = self.dropout1(y)
         y = self.linear2(y)
+        y = self.relu2(y)
+        y = self.dropout2(y)
+        y = self.linear3(y)
         return y
 
     def train_one_batch(self, x, y, dist_option, spars):
@@ -81,7 +89,7 @@ class MLP(model.Model):
     def set_reg(self, rdict):
         self.reg = rdict
 
-# mdict{"name": "mlp", "in_features":10, "out_features":2, "hidden_features":16, "bias": true}
+# mdict{"name": "mlp", "in_features":10, "out_features":2, "hidden_features":16, "bias": true, "reg": {"name":"L2", "alpha": 0.5}}
 def create_mlp(mdict: Dict[str, Any]):
     in_features = mdict.get("in_features")
     if in_features is None:
